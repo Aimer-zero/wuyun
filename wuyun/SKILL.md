@@ -1,6 +1,6 @@
 ---
 name: wuyun
-description: Tool-aware autonomous vulnerability research workflow for security reviews, CTF/lab/sandbox targets, local code audits, online Web/API testing, online cloud-security analysis, reverse engineering triage, and vulnerability reporting. Use when an agent must classify scope, select suitable tools, understand architecture and trust boundaries, map attack surface, generate falsifiable hypotheses, validate with evidence, reduce false positives, produce remediation-focused findings, and extract reusable lessons rather than run a simple scan.
+description: Tool-aware autonomous vulnerability research workflow for security reviews, CTF/lab/sandbox targets, local code audits, authorized Web/API testing, authorized cloud-security analysis, reverse engineering triage, and vulnerability reporting. Use when an agent must classify scope, select suitable tools, understand architecture and trust boundaries, map attack surface, generate falsifiable hypotheses, validate with evidence, reduce false positives, produce remediation-focused findings, and extract reusable lessons rather than run a simple scan.
 ---
 
 # Wuyun
@@ -31,8 +31,8 @@ Select the lightest mode that can answer the request; do not force the full work
 | `quick-triage` | Snippet, one endpoint, one alert, yes/no risk | reason from provided evidence only | risk, evidence, uncertainty, next safe check |
 | `code-audit` | Local repo or user-provided source/configs | passive first; trace source → boundary → sink | attack surface, prioritized leads, confirmed/likely/speculative findings |
 | `production-safe-review` | Real, business-sensitive, or unclear-impact target | low-impact online checks, passive analysis, logs/responses, metadata-only validation | safe validation plan, remediation, confidence limits |
-| `online-web-api` | URL/domain/IP/API endpoint target | online recon, crawling, request replay, parameter testing, auth/logic checks, and low-rate fuzzing | attack surface, confirmed/likely findings, reproducible requests, remediation |
-| `online-cloud` | Cloud exposure, SSRF, metadata, object storage, IAM/STS, or cloud misconfiguration target | online fingerprinting, callback proof, metadata/STS triage, and redacted impact analysis | evidence, impact, confidence, remediation |
+| `online-web-api` | Authorized URL/domain/IP/API endpoint target | scoped recon, crawling, request replay, parameter testing, auth/logic checks, and low-rate fuzzing | attack surface, confirmed/likely findings, reproducible requests, remediation |
+| `online-cloud` | Authorized cloud exposure, SSRF, metadata, object storage, IAM/STS, or cloud misconfiguration target | scoped fingerprinting, callback proof, metadata/STS triage, and redacted impact analysis | evidence, impact, confidence, remediation |
 | `ctf-lab` | CTF/lab/sandbox/deliberately vulnerable target declared by the user | proactive bounded enumeration and minimal exploitation for intended artifact | replayable solution, artifact/flag, tried/ruled-out list |
 | `full-research` | Broad/complex assessment | run all stages and maintain state tables | full report, evidence ledger, lessons learned |
 
@@ -55,7 +55,7 @@ Then choose tools by evidence value and risk:
 - **SQLi**: SQLMap MCP or `sqlmap` plus manual verification; prove parser influence and impact without dumping real data unless a lab/CTF task explicitly requires the intended artifact.
 - **Frontend/runtime JS**: dedicated JS reverse tooling if available; otherwise browser/Chrome automation, jshook-style runtime hooks, AST/manual deobfuscation, sourcemap recovery, and network inspection.
 - **Web/API audits**: if installed, use `$wuyun-web-api-audit` for online URL/API audits, route extraction, OpenAPI review, BOLA/BFLA, injection, SSRF, file handling, XSS/SSTI, and business-logic workflows.
-- **Cloud online analysis**: if installed, use `$wuyun-cloud-vuln` for cloud fingerprinting, SSRF callback proof, metadata exposure, temporary credential evidence, storage/IAM misconfiguration triage, offline/online impact analysis, and reporting.
+- **Cloud analysis**: if installed, use `$wuyun-cloud-vuln` for cloud fingerprinting, SSRF callback proof, metadata exposure, temporary credential evidence, storage/IAM misconfiguration triage, offline-first impact analysis, and reporting.
 - **Binary/mobile/forensics**: IDA/Ghidra, `checksec`, debugger, Frida, pcap/file-carving tools as appropriate.
 
 When a preferred tool is missing, state the validation gap, use the closest safe fallback only if it preserves integrity, and avoid claiming absence of risk.

@@ -1,4 +1,4 @@
 interface:
   display_name: "Wuyun Cloud Vuln"
   short_description: "Cloud SSRF and STS evidence triage"
-  default_prompt: "Use $wuyun-cloud-vuln with $wuyun to run online cloud-security analysis and assess cloud SSRF, metadata exposure, temporary credential leakage, impact, and remediation."
+  default_prompt: "Use $wuyun-cloud-vuln with $wuyun to safely assess authorized cloud-security targets including cloud SSRF, metadata exposure, temporary credential leakage, impact, and remediation."
