@@ -2,7 +2,7 @@
 """Validate the Wuyun skill package before publishing.
 
 This script is local-only and passive. It checks packaging, frontmatter, helper
-scripts, examples, stale names, and obvious private-content leaks.
+scripts, stale names, and obvious private-content leaks.
 """
 from __future__ import annotations
 
@@ -25,22 +25,7 @@ class CheckResult:
 REQUIRED_ROOT_FILES = [
     "README.md",
     "LICENSE",
-    ".gitignore",
-    "examples/local-code-audit-prompt.md",
-    "examples/production-safe-review-prompt.md",
-    "examples/ctf-lab-prompt.md",
-    "examples/cloud-vuln-prompt.md",
-    "examples/web-api-audit-prompt.md",
-    "examples/cloudflare-waf-prompt.md",
-    "examples/js-reverse-prompt.md",
-    "examples/browser-runtime-prompt.md",
-    "examples/js-deobfuscation-prompt.md",
-    "examples/protocol-analysis-prompt.md",
-    "examples/captures/browser-runtime-sample.har",
-    "examples/captures/obfuscated-sample.js",
-    "examples/reports/code-audit-sample.md",
-    "examples/reports/cloud-ssrf-sample.md",
-    "examples/reports/js-reverse-sample.md",
+    "install.sh",
 ]
 
 REQUIRED_SKILL_FILES = [
@@ -65,6 +50,8 @@ REQUIRED_SKILL_FILES = [
     "scripts/bootstrap_tools.py",
     "scripts/quality_gate.py",
     "scripts/validate_skill.py",
+    "scripts/knowledge_base.py",
+    "scripts/risk_report_helper.py",
 ]
 
 COMPANION_SKILLS: dict[str, list[str]] = {
@@ -98,6 +85,8 @@ COMPANION_SKILLS: dict[str, list[str]] = {
         "scripts/extract_routes.py",
         "scripts/analyze_openapi.py",
         "scripts/request_diff.py",
+        "scripts/active_http_validator.py",
+        "scripts/idor_case_generator.py",
     ],
     "wuyun-js-reverse": [
         "SKILL.md",
@@ -105,6 +94,7 @@ COMPANION_SKILLS: dict[str, list[str]] = {
         "references/js-reverse-workflow.md",
         "references/runtime-hooking.md",
         "scripts/extract_js_surface.py",
+        "scripts/runtime_hook_capture.py",
     ],
     "wuyun-browser-runtime": [
         "SKILL.md",
@@ -122,6 +112,7 @@ COMPANION_SKILLS: dict[str, list[str]] = {
         "references/signature-protocol.md",
         "references/wasm-analysis.md",
         "scripts/deobfuscation_triage.py",
+        "scripts/ast_transform.py",
     ],
     "wuyun-protocol-analysis": [
         "SKILL.md",
@@ -129,6 +120,41 @@ COMPANION_SKILLS: dict[str, list[str]] = {
         "references/protocol-workflow.md",
         "references/graphql-websocket.md",
         "scripts/protocol_inventory.py",
+        "scripts/protocol_replay_runner.py",
+        "scripts/graphql_test_plan.py",
+    ],
+    "wuyun-auth-audit": [
+        "SKILL.md",
+        "agents/openai.yaml",
+        "references/oauth-oidc-saml.md",
+        "references/session-tenant-authz.md",
+        "scripts/jwt_audit.py",
+        "scripts/auth_surface_audit.py",
+    ],
+    "wuyun-ai-audit": [
+        "SKILL.md",
+        "agents/openai.yaml",
+        "references/prompt-injection.md",
+        "references/rag-agent-tools.md",
+        "scripts/ai_surface_audit.py",
+        "scripts/prompt_case_generator.py",
+    ],
+    "wuyun-recon": [
+        "SKILL.md",
+        "agents/openai.yaml",
+        "references/recon-workflow.md",
+        "references/tool-integrations.md",
+        "scripts/recon_plan.py",
+        "scripts/route_wordlist.py",
+        "scripts/tool_artifact_generator.py",
+    ],
+    "wuyun-evasion": [
+        "SKILL.md",
+        "agents/openai.yaml",
+        "references/canonicalization.md",
+        "references/origin-exposure.md",
+        "scripts/canonicalization_lab.py",
+        "scripts/origin_exposure_plan.py",
     ],
 }
 
@@ -148,7 +174,7 @@ IGNORE_DIRS = {
     "build",
 }
 
-TEXT_SUFFIXES = {".md", ".yaml", ".yml", ".py", ".txt", ".json", ".gitignore", ""}
+TEXT_SUFFIXES = {".md", ".yaml", ".yml", ".py", ".sh", ".txt", ".json", ".gitignore", ""}
 
 # Split local private paths so the validator does not flag its own patterns.
 PRIVATE_MARKERS = [
@@ -208,7 +234,7 @@ def check_required_files(root: Path, skill_dir: Path, mode: str, results: list[C
             path = root / rel
             add(results, "PASS" if path.exists() else "FAIL", f"root file exists: {rel}")
     else:
-        add(results, "PASS", "skill-only install mode; root README/examples checks skipped")
+        add(results, "PASS", "skill-only install mode; root README/install checks skipped")
     for rel in REQUIRED_SKILL_FILES:
         path = skill_dir / rel
         prefix = "wuyun/" if mode == "repo" else ""

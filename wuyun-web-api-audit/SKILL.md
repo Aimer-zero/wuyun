@@ -13,6 +13,7 @@ Use this companion with `$wuyun` for Web/API vulnerability research. It supports
 - For online targets, start with low-impact fingerprinting, crawling, endpoint discovery, headers/cookies review, robots/sitemap/OpenAPI checks, and request/response mapping. Use source/config/OpenAPI review when available.
 - If Cloudflare/CDN/WAF/Bot Management changes results, preserve Ray IDs and classify CDN/WAF/challenge/origin behavior before attempting more tests.
 - Avoid credential brute force, unrelated tenant enumeration, data dumping, webshell uploads, CAPTCHA/Turnstile automation, proxy rotation, generic WAF-evasion payload packs, and high-volume scanning in production-like contexts.
+- Active validation requires explicit scope and authorization. Use `scripts/active_http_validator.py` only for a single in-scope endpoint, low request counts, one-variable-at-a-time probes, and inert/synthetic values unless the user provides a reviewed authorized payload set. Use `scripts/idor_case_generator.py` to turn route inventories into reviewed BOLA/IDOR case plans before execution.
 - Use synthetic IDs, owned accounts, inert markers, and complete in-scope request/response evidence for authorized private reports.
 - CTF/lab mode may exploit the intended challenge artifact, but keep replay steps minimal and scoped.
 - The user is responsible for permission and acceptable use; Wuyun focuses on bounded research, evidence quality, and remediation. Do not automatically mask in-scope evidence needed for the report.
@@ -26,7 +27,8 @@ Use this companion with `$wuyun` for Web/API vulnerability research. It supports
    - Source: `scripts/extract_routes.py <repo>` for route leads.
    - Spec: `scripts/analyze_openapi.py openapi.yaml` for auth and parameter leads.
 4. **Generate hypotheses** across access control, authn/authz, injection, SSRF, file handling, XSS/SSTI, business logic, and Cloudflare/WAF interference when observed.
-5. **Validate with minimal impact**: replay requests, compare roles/accounts with `scripts/request_diff.py --complete` outputs or captured HTTP messages, change one variable at a time, keep fuzzing low-rate and targeted, and use `scripts/cloudflare_triage.py` for captured Cloudflare blocks/challenges.
+5. **Validate with minimal impact**: replay requests, compare roles/accounts with `scripts/request_diff.py --complete` outputs or captured HTTP messages, generate BOLA/IDOR case plans with `scripts/idor_case_generator.py`, change one variable at a time, keep fuzzing low-rate and targeted, and use `scripts/cloudflare_triage.py` for captured Cloudflare blocks/challenges.
+   - For authorized active checks, run `scripts/active_http_validator.py` in dry-run first; execute only with `--authorize-active-testing` and matching `--scope-host`.
 6. **Report**: separate confirmed/likely/speculative leads; include source → boundary → sink traces, complete in-scope evidence, confidence, remediation, and regression tests.
 
 ## References

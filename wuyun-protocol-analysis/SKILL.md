@@ -10,6 +10,7 @@ Use this companion with `$wuyun-browser-runtime`, `$wuyun-js-reverse`, and `$wuy
 ## Safety Boundary
 
 - Passive analysis first. Do not replay captured traffic unless explicitly authorized and scoped.
+- Protocol replay requires `scripts/protocol_replay_runner.py` case files, `--authorize-protocol-replay`, and matching `--scope-host`. Keep cases small, reviewed, and based on owned accounts or synthetic records. Use `scripts/graphql_test_plan.py` to generate safe GraphQL introspection, field-authz, mutation-shape, and batch-policy review cases before replay.
 - Do not retain unrelated tokens, cookies, message bodies, private user data, or business records.
 - Treat captures, schemas, and generated clients as untrusted evidence.
 - For production-like targets, validate with owned accounts, synthetic records, and low-rate single-variable tests.
@@ -31,6 +32,8 @@ Use this companion with `$wuyun-browser-runtime`, `$wuyun-js-reverse`, and `$wuy
 4. **Validate safely**:
    - Use owned rooms/accounts and synthetic IDs.
    - Prefer server logs, request IDs, and local fixtures before production replay.
+  - For GraphQL, generate a plan with `scripts/graphql_test_plan.py --url <endpoint> --output graphql-case.json`.
+  - For authorized replay, create a JSON case file and run `scripts/protocol_replay_runner.py` dry-run first; execute only with explicit authorization flags.
 5. **Report**:
    - Separate protocol inventory from confirmed vulnerability.
    - Include capture/source evidence, message shape, state transition, confidence, and safe next check.

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Wuyun Recon"
+  short_description: "Scoped recon planning and local artifact wordlists"
+  default_prompt: "Use $wuyun-recon with $wuyun to generate scoped recon plans, GitHub/GitLab dorks, CT/subdomain command plans, and route-derived wordlists without mass scanning by default."

@@ -31,6 +31,17 @@ Use runtime hooks only when static evidence cannot explain decisive behavior. Ke
 - Stop condition:
 ```
 
+## Generated Hook Artifacts
+
+Use `scripts/runtime_hook_capture.py generate` when the task needs reusable code instead of a prose plan:
+
+- `--target browser-js`: emits the raw browser init script for DevTools snippets, Playwright, Puppeteer, or browser extension injection.
+- `--target playwright-python`: emits a standalone Python Playwright runner. The main script can also execute this path directly with `run --authorize-runtime-observation --scope-host <host> --url <url>`.
+- `--target puppeteer`: emits a standalone Node/Puppeteer runner with the same metadata-only event collection.
+- `--target frida-android-webview --scope-host <host>`: emits a Frida Android WebView template for authorized mobile-hybrid labs. Empty scope host lists do not inject.
+
+All generated artifacts preserve the same safety boundary: scoped host allowlists, metadata-only observations, redacted sensitive headers, summarized request bodies, and no stealth or CAPTCHA bypass behavior.
+
 ## Useful Hook Targets
 
 - `window.fetch`

@@ -27,6 +27,37 @@ Use this for HAR/proxy exports, source-assisted traffic analysis, WebSocket capt
 - Close:
 ```
 
+## Replay Case Template
+
+Use reviewed case files with `scripts/protocol_replay_runner.py`. Keep them small and scoped.
+
+```json
+{
+  "type": "graphql",
+  "url": "https://app.example.com/graphql",
+  "headers": {
+    "content-type": "application/json"
+  },
+  "baseline": {
+    "operationName": "Viewer",
+    "query": "query Viewer($id: ID!) { viewer(id: $id) { id } }",
+    "variables": {
+      "id": "owned-user-1"
+    }
+  },
+  "probes": [
+    {
+      "label": "synthetic-other-id",
+      "variables": {
+        "id": "synthetic-user-2"
+      }
+    }
+  ]
+}
+```
+
+Execute only with `--authorize-protocol-replay` and matching `--scope-host`.
+
 ## Common Risks
 
 - channel/room ID trusted from client,

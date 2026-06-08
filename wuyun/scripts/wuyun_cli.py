@@ -16,6 +16,23 @@ from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 REPO_ROOT = SCRIPT_DIR.parents[1]
+PASSTHROUGH_COMMANDS = {
+    "active-http": ("wuyun-web-api-audit", "active_http_validator.py"),
+    "idor-cases": ("wuyun-web-api-audit", "idor_case_generator.py"),
+    "runtime-hook": ("wuyun-js-reverse", "runtime_hook_capture.py"),
+    "ast-transform": ("wuyun-js-deobfuscation", "ast_transform.py"),
+    "protocol-replay": ("wuyun-protocol-analysis", "protocol_replay_runner.py"),
+    "graphql-plan": ("wuyun-protocol-analysis", "graphql_test_plan.py"),
+    "jwt": ("wuyun-auth-audit", "jwt_audit.py"),
+    "auth-audit": ("wuyun-auth-audit", "auth_surface_audit.py"),
+    "ai-audit": ("wuyun-ai-audit", "ai_surface_audit.py"),
+    "ai-cases": ("wuyun-ai-audit", "prompt_case_generator.py"),
+    "recon-plan": ("wuyun-recon", "recon_plan.py"),
+    "route-wordlist": ("wuyun-recon", "route_wordlist.py"),
+    "tool-artifact": ("wuyun-recon", "tool_artifact_generator.py"),
+    "evasion-lab": ("wuyun-evasion", "canonicalization_lab.py"),
+    "origin-plan": ("wuyun-evasion", "origin_exposure_plan.py"),
+}
 
 
 def run_script(script: str, args: list[str]) -> int:
@@ -74,6 +91,12 @@ def print_playbooks() -> None:
         ("browser-runtime", "Isolated browser runtime capture, HAR analysis, and risk-control attribution"),
         ("js-deobfuscation", "AST deobfuscation, WASM, and client-side signature/protocol logic triage"),
         ("protocol-analysis", "WebSocket, GraphQL, RPC, streaming, gRPC/protobuf, and HAR protocol inventory"),
+        ("active-validation", "Authorized parameter fuzzing, runtime hooks, AST transforms, and protocol replay"),
+        ("auth-audit", "JWT, OAuth/OIDC, SAML, session, cookie, and tenant authorization review"),
+        ("ai-audit", "LLM/RAG/agent prompt injection, tool abuse, and AI workflow security"),
+        ("recon", "Scoped dorks, CT/subdomain plans, route wordlists, and tool integrations"),
+        ("evasion-analysis", "Defensive canonicalization, parser mismatch, and origin exposure planning"),
+        ("knowledge-base", "Reusable cross-project patterns without secrets or private data"),
         ("cloud", "Cloud exposure, SSRF, metadata, temporary credential, and storage/IAM triage"),
         ("production-safe", "Low-impact online review for fragile or business-sensitive targets"),
         ("ctf-lab", "Bounded lab/CTF workflow with replayable steps"),
@@ -154,6 +177,10 @@ def cmd_protocol(args: argparse.Namespace) -> int:
     return run_companion_script("wuyun-protocol-analysis", "protocol_inventory.py", cmd_args)
 
 
+def cmd_passthrough(skill_name: str, script_name: str, args: argparse.Namespace) -> int:
+    return run_companion_script(skill_name, script_name, list(args.args))
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="wuyun",
@@ -213,6 +240,74 @@ def build_parser() -> argparse.ArgumentParser:
     protocol.add_argument("--json", action="store_true", help="emit JSON")
     protocol.set_defaults(func=cmd_protocol)
 
+    active_http = sub.add_parser("active-http", help="authorized low-impact HTTP parameter validation")
+    active_http.add_argument("args", nargs=argparse.REMAINDER, help="arguments for active_http_validator.py")
+    active_http.set_defaults(func=lambda args: cmd_passthrough("wuyun-web-api-audit", "active_http_validator.py", args))
+
+    idor_cases = sub.add_parser("idor-cases", help="generate IDOR/BOLA case plans from routes")
+    idor_cases.add_argument("args", nargs=argparse.REMAINDER, help="arguments for idor_case_generator.py")
+    idor_cases.set_defaults(func=lambda args: cmd_passthrough("wuyun-web-api-audit", "idor_case_generator.py", args))
+
+    runtime_hook = sub.add_parser("runtime-hook", help="generate or run browser runtime observation hooks")
+    runtime_hook.add_argument("args", nargs=argparse.REMAINDER, help="arguments for runtime_hook_capture.py")
+    runtime_hook.set_defaults(func=lambda args: cmd_passthrough("wuyun-js-reverse", "runtime_hook_capture.py", args))
+
+    ast_transform = sub.add_parser("ast-transform", help="run conservative local JS deobfuscation transforms")
+    ast_transform.add_argument("args", nargs=argparse.REMAINDER, help="arguments for ast_transform.py")
+    ast_transform.set_defaults(func=lambda args: cmd_passthrough("wuyun-js-deobfuscation", "ast_transform.py", args))
+
+    protocol_replay = sub.add_parser("protocol-replay", help="authorized protocol replay and permission checks")
+    protocol_replay.add_argument("args", nargs=argparse.REMAINDER, help="arguments for protocol_replay_runner.py")
+    protocol_replay.set_defaults(func=lambda args: cmd_passthrough("wuyun-protocol-analysis", "protocol_replay_runner.py", args))
+
+    graphql_plan = sub.add_parser("graphql-plan", help="generate GraphQL deep-test and replay plans")
+    graphql_plan.add_argument("args", nargs=argparse.REMAINDER, help="arguments for graphql_test_plan.py")
+    graphql_plan.set_defaults(func=lambda args: cmd_passthrough("wuyun-protocol-analysis", "graphql_test_plan.py", args))
+
+    jwt = sub.add_parser("jwt", help="offline JWT structure/risk triage")
+    jwt.add_argument("args", nargs=argparse.REMAINDER, help="arguments for jwt_audit.py")
+    jwt.set_defaults(func=lambda args: cmd_passthrough("wuyun-auth-audit", "jwt_audit.py", args))
+
+    auth = sub.add_parser("auth-audit", help="passively extract auth/session surfaces")
+    auth.add_argument("args", nargs=argparse.REMAINDER, help="arguments for auth_surface_audit.py")
+    auth.set_defaults(func=lambda args: cmd_passthrough("wuyun-auth-audit", "auth_surface_audit.py", args))
+
+    ai = sub.add_parser("ai-audit", help="passively extract AI/LLM attack surface")
+    ai.add_argument("args", nargs=argparse.REMAINDER, help="arguments for ai_surface_audit.py")
+    ai.set_defaults(func=lambda args: cmd_passthrough("wuyun-ai-audit", "ai_surface_audit.py", args))
+
+    ai_cases = sub.add_parser("ai-cases", help="generate benign AI/LLM security test cases")
+    ai_cases.add_argument("args", nargs=argparse.REMAINDER, help="arguments for prompt_case_generator.py")
+    ai_cases.set_defaults(func=lambda args: cmd_passthrough("wuyun-ai-audit", "prompt_case_generator.py", args))
+
+    recon = sub.add_parser("recon-plan", help="generate scoped recon dry-run plan")
+    recon.add_argument("args", nargs=argparse.REMAINDER, help="arguments for recon_plan.py")
+    recon.set_defaults(func=lambda args: cmd_passthrough("wuyun-recon", "recon_plan.py", args))
+
+    wordlist = sub.add_parser("route-wordlist", help="generate route/API wordlist from local artifacts")
+    wordlist.add_argument("args", nargs=argparse.REMAINDER, help="arguments for route_wordlist.py")
+    wordlist.set_defaults(func=lambda args: cmd_passthrough("wuyun-recon", "route_wordlist.py", args))
+
+    artifact = sub.add_parser("tool-artifact", help="generate Burp/Caido/http, nuclei, sqlmap, or ffuf artifacts")
+    artifact.add_argument("args", nargs=argparse.REMAINDER, help="arguments for tool_artifact_generator.py")
+    artifact.set_defaults(func=lambda args: cmd_passthrough("wuyun-recon", "tool_artifact_generator.py", args))
+
+    evasion = sub.add_parser("evasion-lab", help="generate benign canonicalization variants for local lab review")
+    evasion.add_argument("args", nargs=argparse.REMAINDER, help="arguments for canonicalization_lab.py")
+    evasion.set_defaults(func=lambda args: cmd_passthrough("wuyun-evasion", "canonicalization_lab.py", args))
+
+    origin = sub.add_parser("origin-plan", help="generate passive origin exposure review plan")
+    origin.add_argument("args", nargs=argparse.REMAINDER, help="arguments for origin_exposure_plan.py")
+    origin.set_defaults(func=lambda args: cmd_passthrough("wuyun-evasion", "origin_exposure_plan.py", args))
+
+    kb = sub.add_parser("kb", help="manage reusable Wuyun knowledge entries")
+    kb.add_argument("args", nargs=argparse.REMAINDER, help="arguments for knowledge_base.py")
+    kb.set_defaults(func=lambda args: run_script("knowledge_base.py", list(args.args)))
+
+    risk = sub.add_parser("risk-report", help="generate CVSS/ATT&CK/ATLAS/PoC helper output")
+    risk.add_argument("args", nargs=argparse.REMAINDER, help="arguments for risk_report_helper.py")
+    risk.set_defaults(func=lambda args: run_script("risk_report_helper.py", list(args.args)))
+
     report = sub.add_parser("report", help="print a finding/triage/lesson report template")
     report.add_argument("--kind", choices=["finding", "triage", "lesson"], default="finding")
     report.set_defaults(func=lambda args: (print_report_template(args.kind) or 0))
@@ -225,6 +320,22 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str]) -> int:
+    if argv and argv[0] in PASSTHROUGH_COMMANDS:
+        skill_name, script_name = PASSTHROUGH_COMMANDS[argv[0]]
+        forwarded = argv[1:]
+        if forwarded[:1] == ["--"]:
+            forwarded = forwarded[1:]
+        return run_companion_script(skill_name, script_name, forwarded)
+    if argv and argv[0] == "risk-report":
+        forwarded = argv[1:]
+        if forwarded[:1] == ["--"]:
+            forwarded = forwarded[1:]
+        return run_script("risk_report_helper.py", forwarded)
+    if argv and argv[0] == "kb":
+        forwarded = argv[1:]
+        if forwarded[:1] == ["--"]:
+            forwarded = forwarded[1:]
+        return run_script("knowledge_base.py", forwarded)
     parser = build_parser()
     args = parser.parse_args(argv)
     return int(args.func(args))

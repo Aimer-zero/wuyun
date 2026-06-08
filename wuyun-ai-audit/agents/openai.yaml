@@ -1,0 +1,4 @@
+interface:
+  display_name: "Wuyun AI Audit"
+  short_description: "LLM, RAG, prompt injection, and agent tool security"
+  default_prompt: "Use $wuyun-ai-audit with $wuyun to map AI/LLM attack surfaces, generate benign canary prompt-injection tests, review RAG and agent tool boundaries, and report remediation without exfiltrating secrets."

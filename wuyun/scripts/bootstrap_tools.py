@@ -11,6 +11,7 @@ import argparse
 import importlib.util
 import json
 import platform
+import re
 import shutil
 import subprocess
 import sys
@@ -37,20 +38,24 @@ TOOLS: tuple[ToolSpec, ...] = (
     ToolSpec("ripgrep", "cli", ("minimal", "web", "ctf", "code"), "fast source search", ("rg",), "", "ripgrep", "ripgrep"),
     ToolSpec("jq", "cli", ("minimal", "web", "cloud"), "JSON inspection", ("jq",), "", "jq", "jq"),
     ToolSpec("git", "cli", ("minimal", "code"), "repository inspection", ("git",), "", "git", "git"),
-    ToolSpec("curl", "cli", ("minimal", "web", "cloud"), "manual HTTP requests", ("curl",), "", "curl", "curl"),
+    ToolSpec("github-cli", "cli", ("recon",), "GitHub code/PR/issue inspection for scoped orgs", ("gh",), "", "gh", "gh"),
+    ToolSpec("curl", "cli", ("minimal", "web", "cloud", "evasion"), "manual HTTP requests", ("curl",), "", "curl", "curl"),
     ToolSpec("node", "cli", ("js-reverse",), "local JavaScript parsing and bundle utilities", ("node",), "", "node", "nodejs"),
     ToolSpec("npm", "cli", ("js-reverse",), "install local JavaScript reverse-engineering helpers", ("npm",), "", "node", "npm"),
     ToolSpec("httpx-cli", "cli", ("web", "ctf"), "HTTP probing CLI", ("httpx",), "", "httpx", None, pipx="httpx"),
-    ToolSpec("cloudflared", "cli", ("web", "cloudflare"), "Cloudflare tunnel/owner diagnostics", ("cloudflared",), "", "cloudflared", None, manual="Install cloudflared from Cloudflare official packages when you control or are authorized for the zone."),
-    ToolSpec("wrangler", "cli", ("web", "cloudflare"), "Cloudflare Workers/zone tooling for owners", ("wrangler",), "", None, None, manual="Install Wrangler with npm in owner-authorized Cloudflare environments."),
+    ToolSpec("cloudflared", "cli", ("web", "cloudflare", "evasion"), "Cloudflare tunnel/owner diagnostics", ("cloudflared",), "", "cloudflared", None, manual="Install cloudflared from Cloudflare official packages when you control or are authorized for the zone."),
+    ToolSpec("wrangler", "cli", ("web", "cloudflare", "evasion"), "Cloudflare Workers/zone tooling for owners", ("wrangler",), "", None, None, manual="Install Wrangler with npm in owner-authorized Cloudflare environments."),
     ToolSpec("ffuf", "cli", ("web", "ctf"), "content/parameter discovery", ("ffuf",), "", "ffuf", "ffuf"),
+    ToolSpec("subfinder", "cli", ("recon",), "scoped passive subdomain enumeration", ("subfinder",), "", "subfinder", None, manual="Install ProjectDiscovery subfinder for your OS."),
+    ToolSpec("amass", "cli", ("recon",), "scoped asset discovery", ("amass",), "", "amass", "amass"),
     ToolSpec("gobuster", "cli", ("web", "ctf"), "directory/vhost discovery", ("gobuster",), "", "gobuster", "gobuster"),
     ToolSpec("dirsearch", "cli", ("web", "ctf"), "directory discovery", ("dirsearch",), "", "dirsearch", None, pipx="dirsearch"),
     ToolSpec("nuclei", "cli", ("web",), "template-based checks; verify manually", ("nuclei",), "", "nuclei", None, manual="Install ProjectDiscovery nuclei for your OS."),
     ToolSpec("sqlmap", "cli", ("web", "ctf"), "SQL injection validation", ("sqlmap",), "", "sqlmap", "sqlmap", pipx="sqlmap"),
+    ToolSpec("jwt_tool", "cli", ("auth", "web", "ctf"), "JWT lab validation and authorized token review", ("jwt_tool", "jwt-tool"), "", None, None, pipx="jwt_tool"),
     ToolSpec("nmap", "cli", ("ctf", "network"), "service discovery for scoped targets", ("nmap",), "", "nmap", "nmap"),
     ToolSpec("tshark", "cli", ("forensics", "network"), "pcap analysis", ("tshark",), "", "wireshark", "tshark"),
-    ToolSpec("mitmproxy", "cli", ("browser-runtime", "web"), "approved HTTP interception and capture", ("mitmproxy", "mitmdump"), "", "mitmproxy", "mitmproxy", pipx="mitmproxy"),
+    ToolSpec("mitmproxy", "cli", ("browser-runtime", "web", "evasion"), "approved HTTP interception and capture", ("mitmproxy", "mitmdump"), "", "mitmproxy", "mitmproxy", pipx="mitmproxy"),
     ToolSpec("awscli", "cli", ("cloud",), "AWS CLI", ("aws",), "", "awscli", "awscli", pipx="awscli"),
     ToolSpec("aliyun-cli", "cli", ("cloud",), "Alibaba Cloud CLI", ("aliyun",), "", "aliyun-cli", None, manual="Install Aliyun CLI from Alibaba Cloud official packages."),
     ToolSpec("tccli", "cli", ("cloud",), "Tencent Cloud CLI", ("tccli",), "", None, None, pip="tccli"),
@@ -68,7 +73,9 @@ TOOLS: tuple[ToolSpec, ...] = (
     ToolSpec("apktool", "cli", ("mobile",), "Android APK resource decoding", ("apktool",), "", "apktool", "apktool"),
     ToolSpec("frida-tools", "cli", ("mobile",), "Frida CLI tools", ("frida", "frida-ps"), "", None, None, pipx="frida-tools"),
     ToolSpec("burp-suite", "manual", ("web",), "HTTP proxy/interception/replay", manual="Install Burp Suite or enable Burp MCP; do not assume scanner coverage without it."),
+    ToolSpec("caido", "manual", ("web",), "HTTP proxy/interception/replay", manual="Install Caido or enable a Caido-compatible workflow; import generated .http/raw request artifacts manually."),
     ToolSpec("chrome-or-chromium", "manual", ("browser-runtime",), "interactive browser runtime capture", manual="Install Chrome/Chromium/Edge and use an isolated profile for authorized browser evidence capture."),
+    ToolSpec("babel-ast-toolchain", "manual", ("js-deobfuscation",), "Babel AST transform backend", manual="Install @babel/parser @babel/traverse @babel/generator @babel/types in a project-local Node environment for the ast_transform.py Babel backend."),
     ToolSpec("ida-or-ghidra-mcp", "manual", ("binary",), "interactive decompilation", manual="Enable ida-pro-mcp or GhidraMCP for binary reverse engineering tasks."),
     ToolSpec("requests", "python", ("minimal", "web"), "scripted HTTP", import_name="requests", pip="requests"),
     ToolSpec("httpx", "python", ("web",), "async/sync HTTP scripting", import_name="httpx", pip="httpx"),
@@ -80,6 +87,7 @@ TOOLS: tuple[ToolSpec, ...] = (
     ToolSpec("playwright", "python", ("browser-runtime",), "authorized browser automation/capture", import_name="playwright", pip="playwright"),
     ToolSpec("haralyzer", "python", ("browser-runtime",), "HAR parsing", import_name="haralyzer", pip="haralyzer"),
     ToolSpec("protobuf", "python", ("protocol",), "protobuf/gRPC schema helpers", import_name="google.protobuf", pip="protobuf"),
+    ToolSpec("websockets", "python", ("protocol",), "authorized WebSocket replay helper", import_name="websockets", pip="websockets"),
     ToolSpec("boto3", "python", ("cloud",), "AWS SDK for lab/cloud validation", import_name="boto3", pip="boto3"),
     ToolSpec("aliyun-python-sdk-core", "python", ("cloud",), "Alibaba Cloud SDK", import_name="aliyunsdkcore", pip="aliyun-python-sdk-core"),
     ToolSpec("tencentcloud-sdk-python", "python", ("cloud",), "Tencent Cloud SDK", import_name="tencentcloud", pip="tencentcloud-sdk-python"),
@@ -110,6 +118,9 @@ PROFILE_DESCRIPTIONS = {
     "network": "network enumeration and packet analysis helpers",
     "crypto": "crypto/constraint-solving helpers",
     "code": "source-review helpers",
+    "recon": "scoped recon planning and local artifact wordlist helpers",
+    "auth": "JWT/OAuth/OIDC/SAML/session review helpers",
+    "evasion": "defensive canonicalization and owner-assisted origin review helpers",
 }
 
 

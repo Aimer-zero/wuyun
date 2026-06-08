@@ -45,10 +45,13 @@ TOOLS: tuple[Tool, ...] = (
     Tool("jq", "passive", "inspect JSON responses, configs, and API schemas"),
     Tool("git", "passive", "inspect history, diffs, ignored files, and provenance"),
     Tool("gh", "passive", "inspect GitHub issues, PRs, and CI metadata"),
+    Tool("subfinder", "recon", "scoped passive subdomain enumeration"),
+    Tool("amass", "recon", "scoped passive/active asset discovery"),
     Tool("curl", "http", "manual HTTP requests for scoped targets", ("wget",)),
     Tool("httpx", "http", "HTTP probing for scoped targets"),
     Tool("mitmproxy", "http-proxy", "approved HTTP interception and HAR/proxy evidence capture", ("mitmdump",)),
     Tool("burpsuite", "http-proxy", "approved HTTP proxy/replay workflow", ("BurpSuiteCommunity", "burp")),
+    Tool("caido", "http-proxy", "approved HTTP proxy/replay workflow", ("Caido",)),
     Tool("cloudflared", "cloudflare", "Cloudflare tunnel/owner diagnostics for authorized zones"),
     Tool("wrangler", "cloudflare", "Cloudflare Workers/zone tooling for owner-authorized testing"),
     Tool("aws", "cloud", "AWS CLI for cloud inventory or lab validation"),
@@ -61,6 +64,7 @@ TOOLS: tuple[Tool, ...] = (
     Tool("dirsearch", "web-enum", "directory discovery for scoped targets"),
     Tool("nuclei", "web-scan", "template-based checks for scoped targets; verify manually"),
     Tool("sqlmap", "web-scan", "SQL injection validation for scoped targets"),
+    Tool("jwt_tool", "auth-tools", "JWT lab validation and authorized token review", ("jwt-tool",)),
     Tool("nmap", "network", "service discovery for scoped hosts/ranges"),
     Tool("tshark", "network", "packet/pcap analysis"),
     Tool("openssl", "crypto", "TLS/certificate and crypto primitive inspection"),
@@ -97,6 +101,8 @@ PY_MODULES: tuple[PyModule, ...] = (
     PyModule("playwright", "python-browser", "browser automation for authorized runtime capture", "playwright"),
     PyModule("haralyzer", "python-browser", "HAR parsing and browser evidence analysis", "haralyzer"),
     PyModule("protobuf", "python-protocol", "protobuf/gRPC schema and message helpers", "google.protobuf"),
+    PyModule("websockets", "python-protocol", "authorized WebSocket replay helper", "websockets"),
+    PyModule("jwt", "python-auth", "JWT parsing helpers", "jwt"),
     PyModule("boto3", "python-cloud", "AWS SDK for lab validation and offline helpers", "boto3"),
     PyModule("aliyun-python-sdk-core", "python-cloud", "Alibaba Cloud SDK for lab validation", "aliyunsdkcore"),
     PyModule("tencentcloud-sdk-python", "python-cloud", "Tencent Cloud SDK for lab validation", "tencentcloud"),
@@ -114,7 +120,7 @@ PY_MODULES: tuple[PyModule, ...] = (
 ACTIVE_GROUPS = {"http", "web-enum", "web-scan", "network"}
 SPECIALIZED_GROUPS = {
     "binary", "mobile", "forensics", "http-proxy",
-    "python-binary", "python-mobile", "python-js-reverse", "python-browser", "python-protocol",
+    "python-binary", "python-mobile", "python-js-reverse", "python-browser", "python-protocol", "python-auth", "recon", "auth-tools",
 }
 
 

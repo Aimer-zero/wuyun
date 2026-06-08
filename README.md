@@ -16,92 +16,80 @@ wuyun-js-reverse/         # 前端 JS 逆向/API 资产提取辅助 Skill
 wuyun-browser-runtime/    # 浏览器运行时/HAR/风控行为归因辅助 Skill
 wuyun-js-deobfuscation/   # JS AST 反混淆/签名协议/WASM 辅助 Skill
 wuyun-protocol-analysis/  # WebSocket/GraphQL/RPC/协议证据分析辅助 Skill
-examples/                 # 使用提示词示例
+wuyun-auth-audit/         # JWT/OAuth/OIDC/SAML/Session/多租户权限辅助 Skill
+wuyun-ai-audit/           # LLM/RAG/Agent/提示注入/工具滥用辅助 Skill
+wuyun-recon/              # Scope 侦察计划、路由字典、外部工具导出辅助 Skill
+wuyun-evasion/            # 防御性规范化差异/源站暴露排查辅助 Skill
 LICENSE                   # MIT License
 ```
 
 ## 安装
 
-### Codex / OpenAI Skill 目录
+默认同时安装到 Codex/OpenAI 和 Claude 的 Skill 目录：
 
 ```bash
-git clone <repo-url> wuyun-skill
-mkdir -p ~/.codex/skills
-cp -R wuyun-skill/wuyun ~/.codex/skills/wuyun
-cp -R wuyun-skill/wuyun-cloud-vuln ~/.codex/skills/wuyun-cloud-vuln
-cp -R wuyun-skill/wuyun-web-api-audit ~/.codex/skills/wuyun-web-api-audit
-cp -R wuyun-skill/wuyun-js-reverse ~/.codex/skills/wuyun-js-reverse
-cp -R wuyun-skill/wuyun-browser-runtime ~/.codex/skills/wuyun-browser-runtime
-cp -R wuyun-skill/wuyun-js-deobfuscation ~/.codex/skills/wuyun-js-deobfuscation
-cp -R wuyun-skill/wuyun-protocol-analysis ~/.codex/skills/wuyun-protocol-analysis
+curl -fsSL https://raw.githubusercontent.com/Aimer-zero/wuyun/main/install.sh | bash
 ```
 
-### Claude Skill 目录
+只安装到某个平台：
 
 ```bash
-git clone <repo-url> wuyun-skill
-mkdir -p ~/.claude/skills
-cp -R wuyun-skill/wuyun ~/.claude/skills/wuyun
-cp -R wuyun-skill/wuyun-cloud-vuln ~/.claude/skills/wuyun-cloud-vuln
-cp -R wuyun-skill/wuyun-web-api-audit ~/.claude/skills/wuyun-web-api-audit
-cp -R wuyun-skill/wuyun-js-reverse ~/.claude/skills/wuyun-js-reverse
-cp -R wuyun-skill/wuyun-browser-runtime ~/.claude/skills/wuyun-browser-runtime
-cp -R wuyun-skill/wuyun-js-deobfuscation ~/.claude/skills/wuyun-js-deobfuscation
-cp -R wuyun-skill/wuyun-protocol-analysis ~/.claude/skills/wuyun-protocol-analysis
+curl -fsSL https://raw.githubusercontent.com/Aimer-zero/wuyun/main/install.sh | bash -s -- --target codex
+curl -fsSL https://raw.githubusercontent.com/Aimer-zero/wuyun/main/install.sh | bash -s -- --target claude
 ```
 
-安装后请重启或刷新你的 AI Agent，让它重新发现 Skill。
+固定版本安装，不跟随 `main`：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Aimer-zero/wuyun/main/install.sh | bash -s -- --version v0.2.0
+```
+
+安装 fork 或自定义目录：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Aimer-zero/wuyun/main/install.sh | bash -s -- --repo your-name/wuyun
+curl -fsSL https://raw.githubusercontent.com/Aimer-zero/wuyun/main/install.sh | bash -s -- --install-dir ~/.codex/skills
+```
+
+安装后请重启或刷新你的 AI Agent，让它重新发现 Skill。安装器依赖 `bash`、`curl` 和 `tar`，不要求用户本地安装 Git。
 
 ## 更新 / 升级
 
-如果你保留了本地 clone，进入仓库后拉取最新代码，再重新同步到 Skill 目录：
+更新到 `main` 最新版，重新运行安装命令即可：
 
 ```bash
-cd wuyun-skill
-git pull --ff-only
+curl -fsSL https://raw.githubusercontent.com/Aimer-zero/wuyun/main/install.sh | bash
 ```
 
-更新 Codex / OpenAI Skills：
+继续锁定某个版本：
 
 ```bash
-rm -rf ~/.codex/skills/wuyun \
-  ~/.codex/skills/wuyun-cloud-vuln \
-  ~/.codex/skills/wuyun-web-api-audit \
-  ~/.codex/skills/wuyun-js-reverse \
-  ~/.codex/skills/wuyun-browser-runtime \
-  ~/.codex/skills/wuyun-js-deobfuscation \
-  ~/.codex/skills/wuyun-protocol-analysis
-
-cp -R wuyun ~/.codex/skills/wuyun
-cp -R wuyun-cloud-vuln ~/.codex/skills/wuyun-cloud-vuln
-cp -R wuyun-web-api-audit ~/.codex/skills/wuyun-web-api-audit
-cp -R wuyun-js-reverse ~/.codex/skills/wuyun-js-reverse
-cp -R wuyun-browser-runtime ~/.codex/skills/wuyun-browser-runtime
-cp -R wuyun-js-deobfuscation ~/.codex/skills/wuyun-js-deobfuscation
-cp -R wuyun-protocol-analysis ~/.codex/skills/wuyun-protocol-analysis
+curl -fsSL https://raw.githubusercontent.com/Aimer-zero/wuyun/main/install.sh | bash -s -- --version v0.2.0
 ```
 
-更新 Claude Skills：
+查看安装器参数：
 
 ```bash
-rm -rf ~/.claude/skills/wuyun \
-  ~/.claude/skills/wuyun-cloud-vuln \
-  ~/.claude/skills/wuyun-web-api-audit \
-  ~/.claude/skills/wuyun-js-reverse \
-  ~/.claude/skills/wuyun-browser-runtime \
-  ~/.claude/skills/wuyun-js-deobfuscation \
-  ~/.claude/skills/wuyun-protocol-analysis
-
-cp -R wuyun ~/.claude/skills/wuyun
-cp -R wuyun-cloud-vuln ~/.claude/skills/wuyun-cloud-vuln
-cp -R wuyun-web-api-audit ~/.claude/skills/wuyun-web-api-audit
-cp -R wuyun-js-reverse ~/.claude/skills/wuyun-js-reverse
-cp -R wuyun-browser-runtime ~/.claude/skills/wuyun-browser-runtime
-cp -R wuyun-js-deobfuscation ~/.claude/skills/wuyun-js-deobfuscation
-cp -R wuyun-protocol-analysis ~/.claude/skills/wuyun-protocol-analysis
+curl -fsSL https://raw.githubusercontent.com/Aimer-zero/wuyun/main/install.sh | bash -s -- --help
 ```
 
-更新后请重启或刷新你的 AI Agent。项目级 `.wuyun/` 研究记忆不会被这些命令更新或删除；它通常位于被审计项目目录内，应按项目单独保留。
+更新后请重启或刷新你的 AI Agent。项目级 `.wuyun/` 研究记忆不会被安装器更新或删除；它通常位于被审计项目目录内，应按项目单独保留。
+
+## 发布版本
+
+需要给用户固定版本时，先打 tag 并发布 GitHub Release：
+
+```bash
+git tag v0.2.0
+git push origin v0.2.0
+gh release create v0.2.0 --title "v0.2.0" --notes "Wuyun v0.2.0"
+```
+
+用户即可安装固定版本：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Aimer-zero/wuyun/main/install.sh | bash -s -- --version v0.2.0
+```
 
 ## 快速使用
 
@@ -116,8 +104,29 @@ python3 wuyun/scripts/wuyun_cli.py browser-env --profile risk-control
 python3 wuyun/scripts/wuyun_cli.py browser-har capture.har
 python3 wuyun/scripts/wuyun_cli.py deobfuscate /path/to/bundle.js
 python3 wuyun/scripts/wuyun_cli.py protocol /path/to/capture.har
+python3 wuyun/scripts/wuyun_cli.py active-http --url https://app.example.com/api/item --param id --profile authz-smoke --scope-host app.example.com
+python3 wuyun/scripts/wuyun_cli.py runtime-hook generate --output /tmp/wuyun-hook.js
+python3 wuyun/scripts/wuyun_cli.py runtime-hook generate --target puppeteer --output /tmp/wuyun-puppeteer-capture.js
+python3 wuyun/scripts/wuyun_cli.py runtime-hook generate --target frida-android-webview --scope-host app.example.com --output /tmp/wuyun-frida-webview.js
+python3 wuyun/scripts/wuyun_cli.py ast-transform /path/to/obfuscated.js --diff
+python3 wuyun/scripts/wuyun_cli.py protocol-replay graphql-case.json --scope-host app.example.com
+python3 wuyun/scripts/wuyun_cli.py idor-cases routes.txt --base-url https://app.example.com
+python3 wuyun/scripts/wuyun_cli.py graphql-plan --url https://app.example.com/graphql --output graphql-case.json
+python3 wuyun/scripts/wuyun_cli.py jwt eyJ...
+python3 wuyun/scripts/wuyun_cli.py auth-audit capture.har
+python3 wuyun/scripts/wuyun_cli.py ai-audit /path/to/ai-app
+python3 wuyun/scripts/wuyun_cli.py ai-cases --channel document --marker WUYUN_CANARY
+python3 wuyun/scripts/wuyun_cli.py recon-plan --domain example.com --org example-org
+python3 wuyun/scripts/wuyun_cli.py route-wordlist /path/to/dist --output routes.txt
+python3 wuyun/scripts/wuyun_cli.py tool-artifact --mode nuclei-template --url https://app.example.com/api/ping --output wuyun-template.yaml
+python3 wuyun/scripts/wuyun_cli.py evasion-lab --literal WUYUN_CANONICALIZATION_TEST
+python3 wuyun/scripts/wuyun_cli.py origin-plan --domain example.com
+python3 wuyun/scripts/wuyun_cli.py risk-report --type idor
+python3 wuyun/scripts/wuyun_cli.py kb seed
 python3 wuyun/scripts/wuyun_cli.py report --kind finding
 ```
+
+执行器默认是 dry-run 或本地离线处理。任何会访问目标的命令都需要显式授权参数，例如 `--authorize-active-testing`、`--authorize-runtime-observation` 或 `--authorize-protocol-replay`，并且必须提供匹配的 `--scope-host`。
 
 ### 本地代码审计
 
@@ -134,6 +143,15 @@ python3 wuyun/scripts/wuyun_cli.py report --kind finding
 模式：online-web-api。
 目标：https://example.com 或 https://api.example.com。
 请进行低影响在线审计，梳理接口、权限、对象 ID、文件上传、SSRF、注入和业务逻辑风险。
+```
+
+### 主动验证闭环
+
+```text
+使用 $wuyun 和 $wuyun-web-api-audit。
+模式：authorized-active-validation。
+目标：单个明确授权的 API endpoint。
+请先 dry-run 生成参数 fuzz / payload 投递 / 响应差异对比计划；只有在我明确提供授权和 scope-host 后，才执行低速、低请求量、单变量主动验证。
 ```
 
 ### 前端 JS 逆向 / API 资产提取
@@ -161,6 +179,7 @@ python3 wuyun/scripts/wuyun_cli.py report --kind finding
 模式：js-deobfuscation。
 目标：本地混淆 JS、chunk、sourcemap 或 WASM glue。
 请识别字符串数组、控制流平坦化、eval/Function、WebCrypto/CryptoJS、WASM 和签名参数，并输出 AST transform plan 与安全验证假设。
+如需执行本地 transform，请使用 `ast_transform.py` 输出到新文件，不要覆盖原始样本。
 ```
 
 ### 协议分析
@@ -170,6 +189,43 @@ python3 wuyun/scripts/wuyun_cli.py report --kind finding
 模式：protocol-analysis。
 目标：HAR、代理导出、GraphQL/protobuf schema、WebSocket 捕获或前端源码。
 请被动梳理 WebSocket、Socket.IO、GraphQL、SSE、JSON-RPC、gRPC/protobuf 和上传/流式协议，不要默认重放流量。
+如需协议重放，请使用 reviewed JSON case file，并显式提供 `--authorize-protocol-replay` 和 `--scope-host`。
+```
+
+### 认证 / 授权专项
+
+```text
+使用 $wuyun 和 $wuyun-auth-audit。
+模式：auth-audit。
+目标：HAR、HTTP 请求集合、源码、配置或用户提供的 JWT。
+请被动梳理 JWT、OAuth/OIDC、SAML、Session/Cookie、CSRF 和多租户权限边界；JWT 默认只做离线结构风险分析，不爆破密钥。
+```
+
+### AI / LLM 应用安全
+
+```text
+使用 $wuyun 和 $wuyun-ai-audit。
+模式：ai-audit。
+目标：LLM、RAG、Agent、工具调用、文档/图片/URL/代码注释输入。
+请用 benign canary 设计提示注入、RAG 投毒、Agent 工具滥用和多模态注入验证，不提取真实系统提示、密钥或用户数据。
+```
+
+### Scope 侦察与工具链导出
+
+```text
+使用 $wuyun 和 $wuyun-recon。
+模式：recon。
+目标：明确授权的 domain/org 和本地 JS/HAR/路由证据。
+请生成 GitHub/GitLab dork、CT、subfinder/amass dry-run、route wordlist、Burp/Caido/raw HTTP、nuclei、sqlmap 和 ffuf 工件；不要默认执行公网扫描。
+```
+
+### 防御性 Evasion / 规范化差异分析
+
+```text
+使用 $wuyun、$wuyun-browser-runtime 和 $wuyun-evasion。
+模式：evasion-analysis。
+目标：自有测试环境或明确授权链路。
+请使用 benign marker 分析 CDN/WAF/代理/框架/应用的 canonicalization 差异，并输出 owner-assisted origin exposure 排查计划；不要自动绕 WAF、不要 CAPTCHA/Turnstile 自动化、不要代理轮换或源站暴力探测。
 ```
 
 ### Cloudflare WAF 感知 Web/API 审计
@@ -208,6 +264,18 @@ python3 wuyun-js-reverse/scripts/extract_js_surface.py /path/to/dist
 python3 wuyun-browser-runtime/scripts/analyze_har.py capture.har
 python3 wuyun-js-deobfuscation/scripts/deobfuscation_triage.py /path/to/bundle.js
 python3 wuyun-protocol-analysis/scripts/protocol_inventory.py capture.har
+python3 wuyun-protocol-analysis/scripts/graphql_test_plan.py --url https://app.example.com/graphql --output graphql-case.json
+python3 wuyun-auth-audit/scripts/jwt_audit.py <jwt-or-file>
+python3 wuyun-auth-audit/scripts/auth_surface_audit.py capture.har
+python3 wuyun-ai-audit/scripts/ai_surface_audit.py /path/to/ai-app
+python3 wuyun-ai-audit/scripts/prompt_case_generator.py --channel document
+python3 wuyun-recon/scripts/recon_plan.py --domain example.com --org example-org
+python3 wuyun-recon/scripts/route_wordlist.py /path/to/dist --output routes.txt
+python3 wuyun-recon/scripts/tool_artifact_generator.py --mode ffuf-plan --url https://app.example.com
+python3 wuyun-evasion/scripts/canonicalization_lab.py
+python3 wuyun-evasion/scripts/origin_exposure_plan.py --domain example.com
+python3 wuyun/scripts/knowledge_base.py seed
+python3 wuyun/scripts/risk_report_helper.py --type idor
 python3 wuyun/scripts/cloudflare_triage.py --headers response-headers.txt --body response-body.html
 python3 wuyun/scripts/validate_skill.py
 python3 wuyun/scripts/quality_gate.py
@@ -222,6 +290,10 @@ python3 wuyun/scripts/quality_gate.py
 - 浏览器运行时复现、HAR/DevTools 证据分析、CDN/WAF/Bot Defense 行为归因
 - JS AST 反混淆、签名协议分析、WASM glue triage
 - WebSocket、GraphQL、RPC、gRPC/protobuf、SSE、流式协议和上传协议分析
+- JWT、OAuth/OIDC、SAML、Session/Cookie、多租户权限专项审计
+- LLM/RAG/Agent、提示注入、工具滥用、多模态输入安全评估
+- 授权范围内的侦察计划、路由字典生成和 Burp/Caido/nuclei/sqlmap/ffuf 工件导出
+- 自有环境中的规范化差异、WAF/CDN 行为归因和源站暴露 owner-assisted 排查
 - 在线 Web/API 安全测试与审计
 - Cloudflare CDN/WAF/Bot Management 干扰识别、Ray ID 证据记录和 owner-assisted validation 工作流
 - CTF、靶场、实验环境
@@ -233,6 +305,8 @@ python3 wuyun/scripts/quality_gate.py
 - 用于违法、违规或超出责任边界的第三方测试
 - 扫描公网目标或批量探测
 - 自动化 CAPTCHA/Turnstile、代理池、stealth 指纹绕控或风控规避
+- 自动化 WAF 绕过、源站暴力探测、隐蔽探测或高频规避测试
+- 未经明确授权的主动 fuzz、payload 投递、协议重放或浏览器运行时观测
 - 获取、导出或保留真实用户数据、业务数据、密钥、Token
 - 编写、上传或部署 WebShell、木马、后门、勒索软件等恶意程序
 - 造成拒绝服务、破坏数据、影响业务运行的测试
@@ -269,92 +343,80 @@ wuyun-js-reverse/         # Companion Skill for frontend JS reverse engineering 
 wuyun-browser-runtime/    # Companion Skill for browser runtime, HAR, and risk-control attribution
 wuyun-js-deobfuscation/   # Companion Skill for JS AST deobfuscation, signatures, and WASM triage
 wuyun-protocol-analysis/  # Companion Skill for WebSocket/GraphQL/RPC/protocol evidence
-examples/                 # Prompt examples
+wuyun-auth-audit/         # Companion Skill for JWT/OAuth/OIDC/SAML/session/tenant authorization review
+wuyun-ai-audit/           # Companion Skill for LLM/RAG/agent/prompt-injection security review
+wuyun-recon/              # Companion Skill for scoped recon plans, route wordlists, and tool artifacts
+wuyun-evasion/            # Companion Skill for defensive canonicalization/origin-exposure analysis
 LICENSE                   # MIT License
 ```
 
 ## Installation
 
-### Codex / OpenAI Skill Directory
+Install into both Codex/OpenAI and Claude skill directories by default:
 
 ```bash
-git clone <repo-url> wuyun-skill
-mkdir -p ~/.codex/skills
-cp -R wuyun-skill/wuyun ~/.codex/skills/wuyun
-cp -R wuyun-skill/wuyun-cloud-vuln ~/.codex/skills/wuyun-cloud-vuln
-cp -R wuyun-skill/wuyun-web-api-audit ~/.codex/skills/wuyun-web-api-audit
-cp -R wuyun-skill/wuyun-js-reverse ~/.codex/skills/wuyun-js-reverse
-cp -R wuyun-skill/wuyun-browser-runtime ~/.codex/skills/wuyun-browser-runtime
-cp -R wuyun-skill/wuyun-js-deobfuscation ~/.codex/skills/wuyun-js-deobfuscation
-cp -R wuyun-skill/wuyun-protocol-analysis ~/.codex/skills/wuyun-protocol-analysis
+curl -fsSL https://raw.githubusercontent.com/Aimer-zero/wuyun/main/install.sh | bash
 ```
 
-### Claude Skill Directory
+Install for one target only:
 
 ```bash
-git clone <repo-url> wuyun-skill
-mkdir -p ~/.claude/skills
-cp -R wuyun-skill/wuyun ~/.claude/skills/wuyun
-cp -R wuyun-skill/wuyun-cloud-vuln ~/.claude/skills/wuyun-cloud-vuln
-cp -R wuyun-skill/wuyun-web-api-audit ~/.claude/skills/wuyun-web-api-audit
-cp -R wuyun-skill/wuyun-js-reverse ~/.claude/skills/wuyun-js-reverse
-cp -R wuyun-skill/wuyun-browser-runtime ~/.claude/skills/wuyun-browser-runtime
-cp -R wuyun-skill/wuyun-js-deobfuscation ~/.claude/skills/wuyun-js-deobfuscation
-cp -R wuyun-skill/wuyun-protocol-analysis ~/.claude/skills/wuyun-protocol-analysis
+curl -fsSL https://raw.githubusercontent.com/Aimer-zero/wuyun/main/install.sh | bash -s -- --target codex
+curl -fsSL https://raw.githubusercontent.com/Aimer-zero/wuyun/main/install.sh | bash -s -- --target claude
 ```
 
-Restart or reload your agent after installation so it can discover the Skills.
+Install a fixed version instead of tracking `main`:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Aimer-zero/wuyun/main/install.sh | bash -s -- --version v0.2.0
+```
+
+Install a fork or custom directory:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Aimer-zero/wuyun/main/install.sh | bash -s -- --repo your-name/wuyun
+curl -fsSL https://raw.githubusercontent.com/Aimer-zero/wuyun/main/install.sh | bash -s -- --install-dir ~/.codex/skills
+```
+
+Restart or reload your agent after installation so it can discover the Skills. The installer requires `bash`, `curl`, and `tar`; users do not need Git locally.
 
 ## Update / Upgrade
 
-If you kept a local clone, pull the latest code first, then resync the Skill directories:
+To update to the latest `main`, rerun the installer:
 
 ```bash
-cd wuyun-skill
-git pull --ff-only
+curl -fsSL https://raw.githubusercontent.com/Aimer-zero/wuyun/main/install.sh | bash
 ```
 
-Update Codex / OpenAI Skills:
+To keep a fixed version:
 
 ```bash
-rm -rf ~/.codex/skills/wuyun \
-  ~/.codex/skills/wuyun-cloud-vuln \
-  ~/.codex/skills/wuyun-web-api-audit \
-  ~/.codex/skills/wuyun-js-reverse \
-  ~/.codex/skills/wuyun-browser-runtime \
-  ~/.codex/skills/wuyun-js-deobfuscation \
-  ~/.codex/skills/wuyun-protocol-analysis
-
-cp -R wuyun ~/.codex/skills/wuyun
-cp -R wuyun-cloud-vuln ~/.codex/skills/wuyun-cloud-vuln
-cp -R wuyun-web-api-audit ~/.codex/skills/wuyun-web-api-audit
-cp -R wuyun-js-reverse ~/.codex/skills/wuyun-js-reverse
-cp -R wuyun-browser-runtime ~/.codex/skills/wuyun-browser-runtime
-cp -R wuyun-js-deobfuscation ~/.codex/skills/wuyun-js-deobfuscation
-cp -R wuyun-protocol-analysis ~/.codex/skills/wuyun-protocol-analysis
+curl -fsSL https://raw.githubusercontent.com/Aimer-zero/wuyun/main/install.sh | bash -s -- --version v0.2.0
 ```
 
-Update Claude Skills:
+Show installer options:
 
 ```bash
-rm -rf ~/.claude/skills/wuyun \
-  ~/.claude/skills/wuyun-cloud-vuln \
-  ~/.claude/skills/wuyun-web-api-audit \
-  ~/.claude/skills/wuyun-js-reverse \
-  ~/.claude/skills/wuyun-browser-runtime \
-  ~/.claude/skills/wuyun-js-deobfuscation \
-  ~/.claude/skills/wuyun-protocol-analysis
-
-cp -R wuyun ~/.claude/skills/wuyun
-cp -R wuyun-cloud-vuln ~/.claude/skills/wuyun-cloud-vuln
-cp -R wuyun-web-api-audit ~/.claude/skills/wuyun-web-api-audit
-cp -R wuyun-js-reverse ~/.claude/skills/wuyun-js-reverse
-cp -R wuyun-browser-runtime ~/.claude/skills/wuyun-browser-runtime
-cp -R wuyun-js-deobfuscation ~/.claude/skills/wuyun-js-deobfuscation
-cp -R wuyun-protocol-analysis ~/.claude/skills/wuyun-protocol-analysis
+curl -fsSL https://raw.githubusercontent.com/Aimer-zero/wuyun/main/install.sh | bash -s -- --help
 ```
 
-Restart or reload your AI agent after updating. Project-local `.wuyun/` research memory is not updated or deleted by these commands; it usually lives inside the audited project and should be preserved per project.
+Restart or reload your AI agent after updating. Project-local `.wuyun/` research memory is not updated or deleted by the installer; it usually lives inside the audited project and should be preserved per project.
+
+## Release Versions
+
+When users need a fixed version, create a tag and GitHub Release:
+
+```bash
+git tag v0.2.0
+git push origin v0.2.0
+gh release create v0.2.0 --title "v0.2.0" --notes "Wuyun v0.2.0"
+```
+
+Users can then install that fixed version:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Aimer-zero/wuyun/main/install.sh | bash -s -- --version v0.2.0
+```
 
 ## Quick Usage
 
@@ -369,8 +431,29 @@ python3 wuyun/scripts/wuyun_cli.py browser-env --profile risk-control
 python3 wuyun/scripts/wuyun_cli.py browser-har capture.har
 python3 wuyun/scripts/wuyun_cli.py deobfuscate /path/to/bundle.js
 python3 wuyun/scripts/wuyun_cli.py protocol /path/to/capture.har
+python3 wuyun/scripts/wuyun_cli.py active-http --url https://app.example.com/api/item --param id --profile authz-smoke --scope-host app.example.com
+python3 wuyun/scripts/wuyun_cli.py runtime-hook generate --output /tmp/wuyun-hook.js
+python3 wuyun/scripts/wuyun_cli.py runtime-hook generate --target puppeteer --output /tmp/wuyun-puppeteer-capture.js
+python3 wuyun/scripts/wuyun_cli.py runtime-hook generate --target frida-android-webview --scope-host app.example.com --output /tmp/wuyun-frida-webview.js
+python3 wuyun/scripts/wuyun_cli.py ast-transform /path/to/obfuscated.js --diff
+python3 wuyun/scripts/wuyun_cli.py protocol-replay graphql-case.json --scope-host app.example.com
+python3 wuyun/scripts/wuyun_cli.py idor-cases routes.txt --base-url https://app.example.com
+python3 wuyun/scripts/wuyun_cli.py graphql-plan --url https://app.example.com/graphql --output graphql-case.json
+python3 wuyun/scripts/wuyun_cli.py jwt eyJ...
+python3 wuyun/scripts/wuyun_cli.py auth-audit capture.har
+python3 wuyun/scripts/wuyun_cli.py ai-audit /path/to/ai-app
+python3 wuyun/scripts/wuyun_cli.py ai-cases --channel document --marker WUYUN_CANARY
+python3 wuyun/scripts/wuyun_cli.py recon-plan --domain example.com --org example-org
+python3 wuyun/scripts/wuyun_cli.py route-wordlist /path/to/dist --output routes.txt
+python3 wuyun/scripts/wuyun_cli.py tool-artifact --mode nuclei-template --url https://app.example.com/api/ping --output wuyun-template.yaml
+python3 wuyun/scripts/wuyun_cli.py evasion-lab --literal WUYUN_CANONICALIZATION_TEST
+python3 wuyun/scripts/wuyun_cli.py origin-plan --domain example.com
+python3 wuyun/scripts/wuyun_cli.py risk-report --type idor
+python3 wuyun/scripts/wuyun_cli.py kb seed
 python3 wuyun/scripts/wuyun_cli.py report --kind finding
 ```
+
+Executors default to dry-run or local offline processing. Any command that contacts a target requires an explicit authorization flag such as `--authorize-active-testing`, `--authorize-runtime-observation`, or `--authorize-protocol-replay`, plus a matching `--scope-host`.
 
 ### Local Code Audit
 
@@ -387,6 +470,15 @@ Use $wuyun and $wuyun-web-api-audit.
 Mode: online-web-api.
 Target: https://example.com or https://api.example.com.
 Run a low-impact online audit and map endpoints, authorization, object IDs, uploads, SSRF, injection, and business logic risks.
+```
+
+### Active Validation Loop
+
+```text
+Use $wuyun and $wuyun-web-api-audit.
+Mode: authorized-active-validation.
+Target: one explicitly authorized API endpoint.
+First dry-run a parameter fuzz / payload delivery / response-diff plan. Execute only after I provide explicit authorization and scope-host, using low-rate, low-count, one-variable-at-a-time probes.
 ```
 
 ### Frontend JS Reverse / API Surface Extraction
@@ -414,6 +506,7 @@ Use $wuyun, $wuyun-js-reverse, and $wuyun-js-deobfuscation.
 Mode: js-deobfuscation.
 Target: local obfuscated JS, chunks, sourcemaps, or WASM glue.
 Identify string arrays, control-flow flattening, eval/Function, WebCrypto/CryptoJS, WASM, and signature parameters, then output an AST transform plan and safe validation hypotheses.
+For local transforms, use `ast_transform.py` and write to a new file; do not overwrite the original sample.
 ```
 
 ### Protocol Analysis
@@ -423,6 +516,43 @@ Use $wuyun and $wuyun-protocol-analysis.
 Mode: protocol-analysis.
 Target: HAR, proxy export, GraphQL/protobuf schema, WebSocket capture, or frontend source.
 Passively inventory WebSocket, Socket.IO, GraphQL, SSE, JSON-RPC, gRPC/protobuf, upload, and streaming protocols. Do not replay traffic by default.
+For protocol replay, use a reviewed JSON case file and explicitly provide `--authorize-protocol-replay` and `--scope-host`.
+```
+
+### Authentication / Authorization Review
+
+```text
+Use $wuyun and $wuyun-auth-audit.
+Mode: auth-audit.
+Target: HAR, HTTP request collection, source/config tree, or user-provided JWT.
+Passively inventory JWT, OAuth/OIDC, SAML, session/cookie, CSRF, and tenant boundaries. JWT review is offline structural triage by default; do not brute force secrets.
+```
+
+### AI / LLM Application Security
+
+```text
+Use $wuyun and $wuyun-ai-audit.
+Mode: ai-audit.
+Target: LLM, RAG, agent, tool-use, document/image/URL/code-comment input workflows.
+Generate benign canary tests for prompt injection, RAG poisoning, agent tool abuse, and multimodal injection without extracting real system prompts, secrets, or user data.
+```
+
+### Scoped Recon And Tool Artifacts
+
+```text
+Use $wuyun and $wuyun-recon.
+Mode: recon.
+Target: explicitly authorized domain/org and local JS/HAR/route evidence.
+Generate GitHub/GitLab dorks, CT plans, subfinder/amass dry-runs, route wordlists, Burp/Caido/raw HTTP, nuclei, sqlmap, and ffuf artifacts. Do not execute public scanning by default.
+```
+
+### Defensive Evasion / Canonicalization Analysis
+
+```text
+Use $wuyun, $wuyun-browser-runtime, and $wuyun-evasion.
+Mode: evasion-analysis.
+Target: owned lab or explicitly authorized CDN/WAF/application path.
+Use benign markers to analyze canonicalization differences across CDN/WAF/proxy/framework/application layers, and produce an owner-assisted origin exposure plan. Do not automate WAF bypass, CAPTCHA/Turnstile handling, proxy rotation, or origin brute forcing.
 ```
 
 ### Cloudflare WAF-Aware Web/API Audit
@@ -461,6 +591,18 @@ python3 wuyun-js-reverse/scripts/extract_js_surface.py /path/to/dist
 python3 wuyun-browser-runtime/scripts/analyze_har.py capture.har
 python3 wuyun-js-deobfuscation/scripts/deobfuscation_triage.py /path/to/bundle.js
 python3 wuyun-protocol-analysis/scripts/protocol_inventory.py capture.har
+python3 wuyun-protocol-analysis/scripts/graphql_test_plan.py --url https://app.example.com/graphql --output graphql-case.json
+python3 wuyun-auth-audit/scripts/jwt_audit.py <jwt-or-file>
+python3 wuyun-auth-audit/scripts/auth_surface_audit.py capture.har
+python3 wuyun-ai-audit/scripts/ai_surface_audit.py /path/to/ai-app
+python3 wuyun-ai-audit/scripts/prompt_case_generator.py --channel document
+python3 wuyun-recon/scripts/recon_plan.py --domain example.com --org example-org
+python3 wuyun-recon/scripts/route_wordlist.py /path/to/dist --output routes.txt
+python3 wuyun-recon/scripts/tool_artifact_generator.py --mode ffuf-plan --url https://app.example.com
+python3 wuyun-evasion/scripts/canonicalization_lab.py
+python3 wuyun-evasion/scripts/origin_exposure_plan.py --domain example.com
+python3 wuyun/scripts/knowledge_base.py seed
+python3 wuyun/scripts/risk_report_helper.py --type idor
 python3 wuyun/scripts/cloudflare_triage.py --headers response-headers.txt --body response-body.html
 python3 wuyun/scripts/validate_skill.py
 python3 wuyun/scripts/quality_gate.py
@@ -475,6 +617,10 @@ Use these scripts for local preflight checks, passive review, and release valida
 - Browser runtime reproduction, HAR/DevTools evidence analysis, and CDN/WAF/Bot Defense attribution
 - JS AST deobfuscation, signature protocol analysis, and WASM glue triage
 - WebSocket, GraphQL, RPC, gRPC/protobuf, SSE, streaming protocol, and upload protocol analysis
+- JWT, OAuth/OIDC, SAML, session/cookie, and tenant authorization review
+- LLM/RAG/agent prompt injection, tool abuse, and multimodal input security review
+- Scoped recon planning, route wordlists, and Burp/Caido/nuclei/sqlmap/ffuf artifact generation
+- Owned-lab canonicalization, WAF/CDN behavior attribution, and owner-assisted origin exposure review
 - Online Web/API testing and auditing
 - Cloudflare CDN/WAF/Bot Management interference classification, Ray ID evidence capture, and owner-assisted validation workflow
 - CTF, lab, and sandbox research
@@ -486,6 +632,8 @@ Use these scripts for local preflight checks, passive review, and release valida
 - Illegal, abusive, or out-of-scope third-party testing
 - Internet-wide scanning or mass probing
 - CAPTCHA/Turnstile automation, proxy pools, stealth fingerprint bypass, or risk-control evasion
+- Automated WAF bypass, origin brute forcing, stealth probing, or high-rate evasion testing
+- Active fuzzing, payload delivery, protocol replay, or browser runtime observation without explicit authorization
 - Collecting or retaining real user data, business data, secrets, or tokens
 - Creating or deploying webshells, trojans, backdoors, ransomware, or malware
 - Causing denial of service, data damage, or business disruption

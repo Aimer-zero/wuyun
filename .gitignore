@@ -11,6 +11,7 @@ CLAUDE.md
 
 # Wuyun local investigation state
 .wuyun/
+examples/
 findings/
 evidence/
 reports/private/

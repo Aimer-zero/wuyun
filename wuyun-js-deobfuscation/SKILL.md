@@ -18,6 +18,7 @@ Use this companion with `$wuyun-js-reverse` when JavaScript is obfuscated, packe
 
 1. **Triage**:
    - Run `scripts/deobfuscation_triage.py <path>` to classify obfuscation, packing, crypto/signature, sourcemap, and WASM signals.
+   - Run `scripts/ast_transform.py <file> --diff` to preview conservative local string-array/picker/unicode/simple-dispatcher rewrites. Use `--apply --output <file>` only to write a separate transformed file.
 2. **Select pipeline**:
    - Load `references/ast-deobfuscation.md` for Babel/Acorn/SWC transform planning.
    - Load `references/signature-protocol.md` for request signing, nonce/timestamp, replay-window, and client-secret analysis.
@@ -25,6 +26,7 @@ Use this companion with `$wuyun-js-reverse` when JavaScript is obfuscated, packe
 3. **Recover structure**:
    - Identify module loaders, request wrappers, signing helpers, API constants, string arrays, and state machines.
    - Use source maps when available before manual deobfuscation.
+   - Treat generated transforms as evidence aids, not proof; review diffs before conclusions.
 4. **Validate meaning**:
    - Confirm whether recovered logic affects a server-side trust boundary.
    - Feed endpoints/protocols to `$wuyun-web-api-audit` and runtime questions to `$wuyun-browser-runtime`.

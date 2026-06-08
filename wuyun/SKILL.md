@@ -38,6 +38,35 @@ Select the lightest mode that can answer the request; do not force the full work
 
 If the task is underspecified, infer the practical target from the request and start with low-impact discovery. Ask a short clarification only when no concrete target can be identified.
 
+## Skill Router
+
+Use this main skill as the lightweight router. Do not preload every companion skill. When task signals match a domain below, load only the named companion skill first, then follow that workflow and load its referenced files/scripts only as needed.
+
+Companion loading rule: prefer the installed skill by name, such as `$wuyun-auth-audit`, when skill discovery exposes it. In a full Wuyun bundle or source checkout, the same companion may also be available at the listed sibling path. If neither the installed skill nor the sibling path exists, state the missing companion, continue with the closest safe Wuyun core workflow, and recommend installing the companion before claiming coverage for that specialty.
+
+- **Web/API signals** (`URL`, REST, OpenAPI, route, BOLA, BFLA, IDOR, injection, upload, SSRF, XSS, SSTI, business logic):
+  Load `$wuyun-web-api-audit`; sibling fallback: `../wuyun-web-api-audit/SKILL.md`.
+- **Cloud signals** (`SSRF to metadata`, IAM, STS, object storage, bucket, AK/SK, temporary credential, AWS, Aliyun, Tencent Cloud):
+  Load `$wuyun-cloud-vuln`; sibling fallback: `../wuyun-cloud-vuln/SKILL.md`.
+- **Auth signals** (`JWT`, OAuth, OIDC, SAML, cookie, session, CSRF, tenant, role, permission, federation):
+  Load `$wuyun-auth-audit`; sibling fallback: `../wuyun-auth-audit/SKILL.md`.
+- **AI/LLM signals** (`prompt injection`, RAG, agent, tool abuse, model output boundary, multimodal injection):
+  Load `$wuyun-ai-audit`; sibling fallback: `../wuyun-ai-audit/SKILL.md`.
+- **JS signals** (`bundle`, sourcemap, signing, obfuscation, minified chunk, SPA/H5, WebCrypto, CryptoJS, WASM):
+  Load `$wuyun-js-reverse`; sibling fallback: `../wuyun-js-reverse/SKILL.md`. If obfuscation, string arrays, control-flow flattening, packed code, WASM, or signature recovery dominates, also load `$wuyun-js-deobfuscation`; sibling fallback: `../wuyun-js-deobfuscation/SKILL.md`.
+- **Browser runtime signals** (`HAR`, DevTools, Service Worker, cache, runtime-only request, WAF/CDN/bot-defense behavior, browser reproduction):
+  Load `$wuyun-browser-runtime`; sibling fallback: `../wuyun-browser-runtime/SKILL.md`. If runtime JS hooks are needed, coordinate with `$wuyun-js-reverse`.
+- **Protocol signals** (`WebSocket`, Socket.IO, GraphQL, subscription, SSE, JSON-RPC, XML-RPC, gRPC, protobuf, streaming, state machine):
+  Load `$wuyun-protocol-analysis`; sibling fallback: `../wuyun-protocol-analysis/SKILL.md`.
+- **Recon signals** (`subdomain`, CT logs, dork, route wordlist, scope discovery, external tool artifact):
+  Load `$wuyun-recon`; sibling fallback: `../wuyun-recon/SKILL.md`.
+- **Evasion-analysis signals** (`canonicalization`, parser mismatch, WAF/origin difference, origin exposure in owned lab):
+  Load `$wuyun-evasion`; sibling fallback: `../wuyun-evasion/SKILL.md`.
+- **Local code-audit signals** (repository, source tree, config, dependency, framework behavior):
+  Stay in this skill and load `references/code-audit-patterns.md`, `references/research-methodology.md`, or `references/web-vuln-patterns.md` only when those details are needed.
+- **CTF/lab signals** (flag, challenge, sandbox, deliberately vulnerable lab):
+  Stay in this skill and load `references/ctf-mode.md` when the lab loop is needed.
+
 ## Tool Preflight & Selection
 
 Before deep work, identify available capabilities. If local shell is available, prefer:
@@ -55,12 +84,7 @@ Then choose tools by evidence value and risk:
 - **Discovery**: `ffuf`, `gobuster`, `dirsearch`, `nmap`, `nuclei` only for scoped targets, with rate limits and a clear reason for each scan.
 - **SQLi**: SQLMap MCP or `sqlmap` plus manual verification; prove parser influence and impact without unnecessary data dumping. When exact in-scope values are needed for an authorized private report, include them completely instead of masking them.
 - **Frontend/runtime JS**: dedicated JS reverse tooling if available; otherwise browser/Chrome automation, jshook-style runtime hooks, AST/manual deobfuscation, sourcemap recovery, and network inspection.
-- **JS reverse companion**: if installed, use `$wuyun-js-reverse` for frontend bundles, sourcemaps, browser-captured scripts, API endpoint extraction, WebSocket/GraphQL discovery, auth/signing logic triage, and safe runtime-hook planning.
-- **Browser runtime companion**: if installed, use `$wuyun-browser-runtime` for isolated browser profiles, HAR/DevTools evidence capture, Service Worker/cache/runtime state diagnosis, and WAF/CDN/bot-defense behavior attribution without evasion.
-- **JS deobfuscation companion**: if installed, use `$wuyun-js-deobfuscation` for obfuscated bundles, AST transform planning, WASM triage, and client-side signature/protocol logic recovery.
-- **Protocol companion**: if installed, use `$wuyun-protocol-analysis` for HAR/proxy/source protocol inventory, WebSocket/Socket.IO, GraphQL, SSE, JSON-RPC, gRPC/protobuf, and state-machine hypotheses.
-- **Web/API audits**: if installed, use `$wuyun-web-api-audit` for online URL/API audits, route extraction, OpenAPI review, BOLA/BFLA, injection, SSRF, file handling, XSS/SSTI, and business-logic workflows.
-- **Cloud online analysis**: if installed, use `$wuyun-cloud-vuln` for cloud fingerprinting, SSRF callback proof, metadata exposure, temporary credential evidence, storage/IAM misconfiguration triage, offline/online impact analysis, and reporting.
+- **Companion workflows**: route specialized tasks through **Skill Router** above, then use that child skill's bundled helpers and references.
 - **Binary/mobile/forensics**: IDA/Ghidra, `checksec`, debugger, Frida, pcap/file-carving tools as appropriate.
 
 When a preferred tool is missing, state the validation gap, use the closest safe fallback only if it preserves integrity, and avoid claiming absence of risk.
@@ -75,6 +99,8 @@ Use deterministic helpers when available; they produce leads, not final findings
 - `scripts/passive_repo_audit.py <repo>`: local-only route/config/risky-pattern triage with reduced documentation false positives.
 - `scripts/init_memory.py <repo>`: creates project-local `.wuyun/` memory/evidence skeleton when the host has no managed memory.
 - `scripts/wuyun_cli.py`: unified local entry point for doctor/init/audit/js-reverse/browser-env/browser-har/deobfuscate/protocol/report/playbook helpers.
+- `scripts/knowledge_base.py`: project-local or explicit cross-project reusable pattern memory without secrets.
+- `scripts/risk_report_helper.py`: CVSS 3.1 estimate, ATT&CK/ATLAS mapping, and minimal PoC template helper.
 - `scripts/validate_skill.py`: validates packaging, metadata, references, examples, script compilation, stale names, and private-content leaks.
 - `scripts/quality_gate.py`: runs publish-oriented validation and a bounded self-audit.
 
@@ -177,8 +203,4 @@ Load only the files needed for the current task:
 - `references/web-vuln-patterns.md`: web/API hypotheses and safe validation plans.
 - `references/ctf-mode.md`: CTF/lab loop, flag handling, tried/ruled-out template.
 
-For Web/API audit tasks, load `$wuyun-web-api-audit` when available. For cloud SSRF, metadata, or temporary cloud credential exposure tasks, load `$wuyun-cloud-vuln` when available.
-For frontend bundle, sourcemap, runtime JavaScript, WebSocket, GraphQL, or client-side signing tasks, load `$wuyun-js-reverse` when available.
-For browser runtime reproduction, HAR analysis, risk-control attribution, or owner-assisted validation tasks, load `$wuyun-browser-runtime` when available.
-For obfuscated JavaScript, AST deobfuscation, WASM, or signing protocol recovery, load `$wuyun-js-deobfuscation` when available.
-For protocol inventories, WebSocket/GraphQL/RPC/streaming/gRPC state modeling, load `$wuyun-protocol-analysis` when available.
+For specialized companion workflows, use **Skill Router** and load only the matching companion skills or their sibling fallback files.
