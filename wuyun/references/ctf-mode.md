@@ -42,7 +42,7 @@ Also infer competition-specific formats from challenge instructions.
 
 ```markdown
 ## Outcome
-- Flag/artifact: `<redacted or exact if intended by CTF>`
+- Flag/artifact: `<exact intended CTF artifact>`
 
 ## Exploit Path
 1. <step>

@@ -138,17 +138,19 @@ def iter_files(root: Path, max_files: int, max_size: int, code_only: bool, exclu
             yield path
 
 
-def redact_evidence(category: str, line: str) -> str:
+def format_evidence(category: str, line: str, complete: bool = False) -> str:
     compact = " ".join(line.strip().split())
+    if complete:
+        return compact
     if len(compact) > 180:
         compact = compact[:177] + "..."
     compact = re.sub(
         r"(?i)(api[_-]?key|secret|token|password|passwd|private[_-]?key|access[_-]?key|auth[_-]?key)(\b\s*[:=]\s*)['\"]?[^'\"\s]+",
-        r"\1\2<redacted>",
+        r"\1\2<compact-sensitive-value>",
         compact,
     )
     if category == "secret":
-        compact = re.sub(r"-----BEGIN [^-]+PRIVATE KEY-----", "<redacted private key block>", compact)
+        compact = re.sub(r"-----BEGIN [^-]+PRIVATE KEY-----", "<compact private key block>", compact)
     return compact
 
 
@@ -161,18 +163,20 @@ def adjusted_severity(path: Path, category: str, severity: str) -> tuple[str, st
 
 
 def is_own_rule_definition(path: Path, line: str) -> bool:
-    if path.name != "passive_repo_audit.py":
+    if path.name not in {"passive_repo_audit.py", "extract_js_surface.py"}:
         return False
     stripped = line.lstrip()
-    return (
-        stripped.startswith('("')
-        or "hypotheses.append" in stripped
-        or "rules" in stripped and "command-exec" in stripped
-        or "auth-todo-or-bypass" in stripped and "rules" in stripped
-    )
+    if path.name == "passive_repo_audit.py":
+        return (
+            stripped.startswith('("')
+            or "hypotheses.append" in stripped
+            or "rules" in stripped and "command-exec" in stripped
+            or "auth-todo-or-bypass" in stripped and "rules" in stripped
+        )
+    return stripped.startswith('("') or stripped.startswith("('") or "hypotheses.append" in stripped
 
 
-def scan_file(path: Path, root: Path) -> list[Hit]:
+def scan_file(path: Path, root: Path, complete_evidence: bool = False) -> list[Hit]:
     hits: list[Hit] = []
     try:
         text = path.read_text(encoding="utf-8", errors="replace")
@@ -186,7 +190,7 @@ def scan_file(path: Path, root: Path) -> list[Hit]:
         for category, rule, regex, severity in COMPILED:
             if regex.search(line):
                 sev, conf = adjusted_severity(rel_path, category, severity)
-                hits.append(Hit(category, rule, rel, lineno, redact_evidence(category, line), sev, conf))
+                hits.append(Hit(category, rule, rel, lineno, format_evidence(category, line, complete=complete_evidence), sev, conf))
     # File-path based framework routes.
     parts = rel_path.parts
     if "pages" in parts and rel_path.parent.name == "api" and rel_path.suffix in {".js", ".ts"}:
@@ -241,7 +245,7 @@ def build_hypotheses(hits: list[Hit]) -> list[str]:
     if "unsafe-deserialization" in rules:
         hypotheses.append("Confirm whether untrusted data reaches unsafe deserialization or polymorphic parsing; prefer safe local fixtures for validation.")
     if {"secret-like-assignment", "private-key-block"} & rules:
-        hypotheses.append("Confirm whether secret-like values are real, in-scope, and active; rotate if exposed, but do not copy values into reports.")
+        hypotheses.append("Confirm whether secret-like values are real, in-scope, and active; rotate if exposed, and include complete values only in authorized private reports.")
     if {"auth-todo-or-bypass", "jwt-unverified"} & rules:
         hypotheses.append("Prioritize comments/branches and token handling that mention auth bypass, permissions, tenants, ownership, or unverified JWTs.")
     if {"debug-enabled", "wide-cors", "weak-crypto"} & rules:
@@ -249,14 +253,14 @@ def build_hypotheses(hits: list[Hit]) -> list[str]:
     return hypotheses
 
 
-def audit(root: Path, max_files: int, max_size: int, code_only: bool, excludes: list[str]) -> dict:
+def audit(root: Path, max_files: int, max_size: int, code_only: bool, excludes: list[str], complete_evidence: bool = False) -> dict:
     root = root.resolve()
     files = list(iter_files(root, max_files=max_files, max_size=max_size, code_only=code_only, excludes=excludes))
     language_counts = Counter(language_from_ext(p.suffix) for p in files)
     manifests = sorted(str(p.relative_to(root)) for p in files if p.name in MANIFEST_NAMES)
     hits: list[Hit] = []
     for path in files:
-        hits.extend(scan_file(path, root))
+        hits.extend(scan_file(path, root, complete_evidence=complete_evidence))
     hits_by_category = Counter(h.category for h in hits)
     hits_by_rule = Counter(h.rule for h in hits)
     routes = [h for h in hits if h.category == "route"]
@@ -266,6 +270,7 @@ def audit(root: Path, max_files: int, max_size: int, code_only: bool, excludes: 
         "scanned_files": len(files),
         "code_only": code_only,
         "excludes": excludes,
+        "complete_evidence": complete_evidence,
         "language_counts": dict(language_counts.most_common()),
         "manifests": manifests[:200],
         "framework_hints": detect_frameworks(files, root),
@@ -353,6 +358,7 @@ def main(argv: list[str]) -> int:
     parser.add_argument("--max-size", type=int, default=512_000, help="maximum file size in bytes")
     parser.add_argument("--code-only", action="store_true", help="skip documentation/example files to reduce false positives")
     parser.add_argument("--exclude", action="append", default=[], help="relative file or directory prefix to skip; may be repeated")
+    parser.add_argument("--complete-evidence", action="store_true", help="emit complete in-scope evidence for authorized private reports")
     args = parser.parse_args(argv)
 
     root = Path(args.path)
@@ -360,7 +366,7 @@ def main(argv: list[str]) -> int:
         print(f"error: not a directory: {root}", file=sys.stderr)
         return 2
 
-    result = audit(root, args.max_files, args.max_size, args.code_only, args.exclude)
+    result = audit(root, args.max_files, args.max_size, args.code_only, args.exclude, complete_evidence=args.complete_evidence)
     if args.json:
         print(json.dumps(result, ensure_ascii=False, indent=2))
     else:

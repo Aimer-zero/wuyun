@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Compare two HTTP messages or response bodies for security triage.
 
-Designed for role/account diffing with redaction. It does not send requests.
+Designed for role/account diffing. It does not send requests.
 """
 from __future__ import annotations
 
@@ -25,10 +25,12 @@ class HttpMessage:
     json_body: Any | None
 
 
-def redact_value(key: str, value: str) -> str:
+def format_value(key: str, value: str, complete: bool = False) -> str:
+    if complete:
+        return value
     if SENSITIVE_HEADER.search(key) or SENSITIVE_JSON_KEY.search(key):
         if len(value) <= 8:
-            return "<redacted>"
+            return f"<compact len={len(value)}>"
         return f"{value[:4]}…{value[-4:]} (len={len(value)})"
     if len(value) > 160:
         return value[:120] + "…"
@@ -73,7 +75,7 @@ def flatten_json(value: Any, prefix: str = "") -> dict[str, str]:
     return out
 
 
-def diff_dict(a: dict[str, str], b: dict[str, str]) -> list[tuple[str, str, str, str]]:
+def diff_dict(a: dict[str, str], b: dict[str, str], complete: bool = False) -> list[tuple[str, str, str, str]]:
     rows: list[tuple[str, str, str, str]] = []
     keys = sorted(set(a) | set(b))
     for key in keys:
@@ -82,27 +84,27 @@ def diff_dict(a: dict[str, str], b: dict[str, str]) -> list[tuple[str, str, str,
         if av == bv:
             continue
         if av is None:
-            rows.append(("added", key, "", redact_value(key, bv or "")))
+            rows.append(("added", key, "", format_value(key, bv or "", complete=complete)))
         elif bv is None:
-            rows.append(("removed", key, redact_value(key, av), ""))
+            rows.append(("removed", key, format_value(key, av, complete=complete), ""))
         else:
-            rows.append(("changed", key, redact_value(key, av), redact_value(key, bv)))
+            rows.append(("changed", key, format_value(key, av, complete=complete), format_value(key, bv, complete=complete)))
     return rows
 
 
-def summarize(a: HttpMessage, b: HttpMessage) -> dict[str, Any]:
+def summarize(a: HttpMessage, b: HttpMessage, complete: bool = False) -> dict[str, Any]:
     rows: dict[str, Any] = {
         "start_changed": a.start != b.start,
         "start_a": a.start,
         "start_b": b.start,
-        "header_diff": diff_dict(a.headers, b.headers),
+        "header_diff": diff_dict(a.headers, b.headers, complete=complete),
         "body_len_a": len(a.body),
         "body_len_b": len(b.body),
         "body_len_delta": len(b.body) - len(a.body),
         "json_diff": [],
     }
     if a.json_body is not None or b.json_body is not None:
-        rows["json_diff"] = diff_dict(flatten_json(a.json_body), flatten_json(b.json_body)) if a.json_body is not None and b.json_body is not None else [("changed", "<json-parse>", str(a.json_body is not None), str(b.json_body is not None))]
+        rows["json_diff"] = diff_dict(flatten_json(a.json_body), flatten_json(b.json_body), complete=complete) if a.json_body is not None and b.json_body is not None else [("changed", "<json-parse>", str(a.json_body is not None), str(b.json_body is not None))]
     return rows
 
 
@@ -132,10 +134,11 @@ def print_markdown(summary: dict[str, Any]) -> None:
 
 
 def main(argv: list[str]) -> int:
-    parser = argparse.ArgumentParser(description="Diff two local HTTP messages/responses with redaction.")
+    parser = argparse.ArgumentParser(description="Diff two local HTTP messages/responses.")
     parser.add_argument("a", help="first HTTP message/body file")
     parser.add_argument("b", help="second HTTP message/body file")
     parser.add_argument("--json", action="store_true", help="emit JSON")
+    parser.add_argument("--complete", action="store_true", help="emit complete in-scope values for authorized private reports")
     args = parser.parse_args(argv)
     try:
         msg_a = parse_message(Path(args.a).read_text(encoding="utf-8", errors="replace"))
@@ -143,7 +146,7 @@ def main(argv: list[str]) -> int:
     except OSError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
-    summary = summarize(msg_a, msg_b)
+    summary = summarize(msg_a, msg_b, complete=args.complete)
     if args.json:
         print(json.dumps(summary, ensure_ascii=False, indent=2))
     else:

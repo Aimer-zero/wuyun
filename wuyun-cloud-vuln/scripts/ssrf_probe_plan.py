@@ -123,7 +123,7 @@ def print_plan(provider: str, mode: str, callback_url: str | None, param: str, i
     print()
     print("## Step 5 — Offline triage")
     print("```bash")
-    print("python3 wuyun-cloud-vuln/scripts/detect_cloud_tokens.py evidence.txt")
+    print("python3 wuyun-cloud-vuln/scripts/detect_cloud_tokens.py --complete evidence.txt")
     print("python3 wuyun-cloud-vuln/scripts/analyze_aliyun_sts_policy.py policy.json")
     print("```")
     print()

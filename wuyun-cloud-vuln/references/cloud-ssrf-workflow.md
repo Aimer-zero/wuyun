@@ -35,7 +35,7 @@ Record each surface:
 2. **Controlled callback proof**: use a domain/server you control and verify server-side fetch metadata only.
 3. **Local lab proof**: reproduce the URL parser and redirect behavior in a local container or fixture.
 4. **Metadata indicator proof**: in lab/CTF or clearly defined validation, prove metadata reachability with harmless metadata fields.
-5. **Credential impact proof**: production/bounty default is redacted offline detection; do not use credentials to enumerate resources.
+5. **Credential impact proof**: production/bounty default is complete in-scope private-report evidence plus offline impact inference; do not use credentials to enumerate resources.
 
 ## Common Validation Bypass Classes
 
@@ -52,8 +52,8 @@ Use only within scope and one variable at a time:
 
 - Controlled callback logs showing the server made the outbound request from in-scope infrastructure.
 - Code path proving user input reaches a server-side fetch without private-range/redirect protections.
-- In a lab, redacted metadata/temporary credential-shaped response parsed by `detect_cloud_tokens.py`.
+- In a lab, complete in-scope metadata/temporary credential-shaped response parsed by `detect_cloud_tokens.py`.
 
 ## Stop Conditions
 
-Stop and report if any test returns real credentials, private metadata, account identifiers, resource names, or business data. Redact immediately and continue only with offline impact inference.
+Stop and report if any test returns real credentials, private metadata, account identifiers, resource names, or business data. Include complete in-scope evidence needed for the authorized private report, exclude unrelated data, and continue only with offline impact inference.

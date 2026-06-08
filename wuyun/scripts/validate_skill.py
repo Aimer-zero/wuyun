@@ -31,6 +31,16 @@ REQUIRED_ROOT_FILES = [
     "examples/ctf-lab-prompt.md",
     "examples/cloud-vuln-prompt.md",
     "examples/web-api-audit-prompt.md",
+    "examples/cloudflare-waf-prompt.md",
+    "examples/js-reverse-prompt.md",
+    "examples/browser-runtime-prompt.md",
+    "examples/js-deobfuscation-prompt.md",
+    "examples/protocol-analysis-prompt.md",
+    "examples/captures/browser-runtime-sample.har",
+    "examples/captures/obfuscated-sample.js",
+    "examples/reports/code-audit-sample.md",
+    "examples/reports/cloud-ssrf-sample.md",
+    "examples/reports/js-reverse-sample.md",
 ]
 
 REQUIRED_SKILL_FILES = [
@@ -42,13 +52,16 @@ REQUIRED_SKILL_FILES = [
     "references/learning-mechanism.md",
     "references/memory-schema.md",
     "references/tool-matrix.md",
+    "references/cloudflare-waf.md",
     "references/safe-validation.md",
     "references/code-audit-patterns.md",
     "references/web-vuln-patterns.md",
     "references/ctf-mode.md",
     "scripts/check_tools.py",
+    "scripts/cloudflare_triage.py",
     "scripts/passive_repo_audit.py",
     "scripts/init_memory.py",
+    "scripts/wuyun_cli.py",
     "scripts/bootstrap_tools.py",
     "scripts/quality_gate.py",
     "scripts/validate_skill.py",
@@ -79,10 +92,43 @@ COMPANION_SKILLS: dict[str, list[str]] = {
         "references/xss-ssti.md",
         "references/business-logic.md",
         "references/openapi-review.md",
+        "references/cloudflare-waf.md",
         "references/reporting.md",
+        "scripts/cloudflare_triage.py",
         "scripts/extract_routes.py",
         "scripts/analyze_openapi.py",
         "scripts/request_diff.py",
+    ],
+    "wuyun-js-reverse": [
+        "SKILL.md",
+        "agents/openai.yaml",
+        "references/js-reverse-workflow.md",
+        "references/runtime-hooking.md",
+        "scripts/extract_js_surface.py",
+    ],
+    "wuyun-browser-runtime": [
+        "SKILL.md",
+        "agents/openai.yaml",
+        "references/browser-runtime.md",
+        "references/risk-control-triage.md",
+        "references/environment-patching.md",
+        "scripts/browser_env_plan.py",
+        "scripts/analyze_har.py",
+    ],
+    "wuyun-js-deobfuscation": [
+        "SKILL.md",
+        "agents/openai.yaml",
+        "references/ast-deobfuscation.md",
+        "references/signature-protocol.md",
+        "references/wasm-analysis.md",
+        "scripts/deobfuscation_triage.py",
+    ],
+    "wuyun-protocol-analysis": [
+        "SKILL.md",
+        "agents/openai.yaml",
+        "references/protocol-workflow.md",
+        "references/graphql-websocket.md",
+        "scripts/protocol_inventory.py",
     ],
 }
 
@@ -285,7 +331,7 @@ def check_content(root: Path, results: list[CheckResult]) -> None:
                 add(results, "FAIL", f"private local path marker in {rel}: {marker}")
         for pattern in SECRET_PATTERNS:
             if pattern.search(text):
-                add(results, "FAIL", f"secret-like material found in {rel}; redact before publishing")
+                add(results, "FAIL", f"secret-like material found in {rel}; remove before publishing")
 
 
 def print_results(results: list[CheckResult]) -> int:

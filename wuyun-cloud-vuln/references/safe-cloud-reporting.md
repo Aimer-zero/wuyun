@@ -17,13 +17,13 @@
 1. Source: <route/parameter>
 2. Boundary: <URL validation/redirect/DNS control>
 3. Sink: <server-side HTTP client>
-4. Evidence: <redacted metadata/credential indicator>
+4. Evidence: <complete in-scope metadata/credential indicator>
 5. Impact inference: <policy/action/service evidence>
 
 ## Evidence
-- Controlled callback: <timestamp/source IP or request metadata, redacted>
-- Credential indicator: <redacted fields only>
-- Offline analysis command: `python3 wuyun-cloud-vuln/scripts/detect_cloud_tokens.py <file>`
+- Controlled callback: <timestamp/source IP or complete in-scope request metadata>
+- Credential indicator: <complete in-scope fields needed for remediation>
+- Offline analysis command: `python3 wuyun-cloud-vuln/scripts/detect_cloud_tokens.py --complete <file>`
 
 ## Remediation
 - Enforce scheme/host allowlists for URL fetchers.
@@ -34,8 +34,8 @@
 - Add regression tests for redirect and IP-encoding bypasses.
 ```
 
-## Redaction Rules
+## Complete In-Scope Evidence Rules
 
-- Show only key prefixes/suffixes or field presence.
-- Do not include raw `AccessKeySecret`, `SecretAccessKey`, `SecurityToken`, `TmpSecretKey`, `Token`, or `access_token` values.
-- Replace account IDs, bucket names, instance IDs, database names, and internal hostnames unless the program explicitly allows them in reports.
+- In authorized private remediation reports, include complete in-scope identifiers and credential indicators needed to reproduce, validate, or remediate the issue.
+- Do not add unrelated cloud resources, users, databases, objects, or secrets that are not necessary to prove the finding.
+- Do not use exposed credentials to enumerate breadth or collect business data unless the task explicitly permits that exact action.

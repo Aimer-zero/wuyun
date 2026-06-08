@@ -14,7 +14,13 @@ Use this reference to create or update a model-agnostic vulnerability research m
 
 ```text
 .wuyun/
+  project.md         # scope, architecture, safety boundary
+  attack-surface.md  # input vectors, trust boundaries, controls, status
+  hypotheses.md      # falsifiable claims, evidence for/against, safe validation
   memory.md          # curated long-term knowledge using this schema
+  lessons.md         # investigation lessons before promotion into memory
+  false-positives.md # ruled-out signals and why they were misleading
+  evidence/          # optional non-sensitive artifacts or pointers
   findings/          # optional per-investigation summaries
   evidence-index.md  # optional pointers to non-sensitive evidence
 ```

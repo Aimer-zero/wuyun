@@ -1,0 +1,4 @@
+interface:
+  display_name: "Wuyun JS Deobfuscation"
+  short_description: "AST deobfuscation and signature triage"
+  default_prompt: "Use $wuyun-js-deobfuscation with $wuyun-js-reverse to triage obfuscated JavaScript, plan AST transforms, locate signing/protocol logic, and produce evidence-linked follow-up hypotheses without executing unknown bundles."

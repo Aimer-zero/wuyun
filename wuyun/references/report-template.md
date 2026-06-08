@@ -46,7 +46,7 @@ Describe the end-to-end flow:
 - Sink/Decision: `<query/template/command/file/action>`
 ```
 
-Include only the decisive details. Avoid dumping large logs.
+Include exact decisive details and enough surrounding context for a human reviewer to judge validity. Do not mask in-scope evidence in an authorized private report. Avoid dumping large unrelated logs when a precise excerpt, path, hash, timestamp, or command output proves the point.
 
 ## 3. Supporting Evidence
 
@@ -56,6 +56,7 @@ Include only the decisive details. Avoid dumping large logs.
 - Attacker-controlled input:
 - Missing or flawed control:
 - Observed impact:
+- Complete in-scope evidence:
 
 ### Minimal Reproduction
 ```bash

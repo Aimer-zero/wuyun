@@ -29,11 +29,11 @@ Start at the lowest level that can answer the question.
 - High-volume crawling, fuzzing, scanning, or denial-of-service style tests.
 - Privilege escalation on production systems.
 
-## Redaction Rules
+## Complete In-Scope Evidence Rules
 
-- Replace secret values with `<redacted>`.
-- Truncate tokens to at most a short prefix/suffix only when needed for correlation.
-- Replace user/customer identifiers with stable pseudonyms.
+- In authorized private reports, include complete in-scope values needed for reproduction and remediation.
+- Do not include unrelated users, customer records, secrets, files, or business data that are not necessary to prove the finding.
+- Avoid broad dumps when a precise complete in-scope excerpt proves the point.
 - Store only non-sensitive evidence pointers in memory.
 
 ## Confidence Impact

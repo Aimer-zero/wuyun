@@ -15,7 +15,7 @@
 
 ## Evidence
 - Minimal request or code path:
-- Observed redacted result:
+- Observed complete in-scope result:
 - Why this crosses intended privilege/tenant/state boundary:
 
 ## Confidence

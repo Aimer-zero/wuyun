@@ -1,4 +1,4 @@
 interface:
   display_name: "Wuyun Web/API Audit"
-  short_description: "Web and API vulnerability audit workflow"
-  default_prompt: "Use $wuyun-web-api-audit with $wuyun to run online Web/API audits, map attack surface, generate hypotheses, validate safely, and report remediation-focused findings."
+  short_description: "Web/API audit and WAF-aware workflow"
+  default_prompt: "Use $wuyun-web-api-audit with $wuyun to run online Web/API audits, handle Cloudflare/WAF interference, map attack surface, validate safely, and report remediation-focused findings."

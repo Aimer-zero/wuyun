@@ -14,6 +14,7 @@ Pick the tool that gives the strongest evidence with the least risk. If the righ
 | Route discovery | framework router inspection, OpenAPI/spec parsing, `passive_repo_audit.py` | manual manifest/source review | Route, method, auth middleware, handler |
 | Dependency inventory | package manager lockfiles, SBOM tools, package manager audit | manifest parsing | Package name, version, source file, reachability |
 | HTTP request replay | Burp MCP/repeater, captured HAR replay, `curl`, Python `requests`/`httpx` | user-provided request/response analysis | Request, response code, response field, timing |
+| Cloudflare/WAF interference | captured HAR/headers, `cloudflare_triage.py`, browser/runtime tools, owner Security Events by Ray ID | source/OpenAPI review and owner-assisted replay | Ray ID, status, block/challenge marker, request shape, origin-validation gap |
 | Browser/runtime JS | js-reverse MCP, jshook, browser/Chrome automation, runtime hooks | static JS review | Executed function, runtime value, network call |
 | Directory/parameter discovery | `ffuf`, `gobuster`, `dirsearch` with rate limits | route/source extraction | Discovered path/parameter and status behavior |
 | SQL injection | SQLMap MCP/`sqlmap` plus manual proof | code-level query review | Bound parameter evidence or controlled error/timing |
@@ -56,3 +57,9 @@ No SQL injection exists because sqlmap is unavailable.
 - Prefer synthetic markers over data extraction.
 - Stop if tests produce instability, errors at scale, or unexpected sensitive data.
 - Record which tool proved which fact; do not let scanner output replace root-cause validation.
+
+## Cloudflare/WAF Validation Gap Language
+
+```text
+Cloudflare WAF blocks validation for this request shape. WAF behavior is confirmed by status/header/body indicators, but origin behavior remains unproven. Use Ray ID lookup or a scoped owner-approved WAF skip/staging replay to validate the application layer.
+```

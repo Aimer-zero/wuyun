@@ -38,6 +38,7 @@ class PyModule:
 TOOLS: tuple[Tool, ...] = (
     Tool("python3", "runtime", "run deterministic helper scripts and custom validators", ("python",)),
     Tool("node", "runtime", "JavaScript parsing, frontend analysis, quick web tooling"),
+    Tool("npm", "runtime", "JavaScript tooling installation and local frontend utilities", ("pnpm", "yarn")),
     Tool("ruby", "runtime", "Metasploit helpers and Ruby-based tooling"),
     Tool("go", "runtime", "build Go tools or audit Go projects"),
     Tool("rg", "passive", "fast source and config search", ("ripgrep", "grep")),
@@ -46,6 +47,10 @@ TOOLS: tuple[Tool, ...] = (
     Tool("gh", "passive", "inspect GitHub issues, PRs, and CI metadata"),
     Tool("curl", "http", "manual HTTP requests for scoped targets", ("wget",)),
     Tool("httpx", "http", "HTTP probing for scoped targets"),
+    Tool("mitmproxy", "http-proxy", "approved HTTP interception and HAR/proxy evidence capture", ("mitmdump",)),
+    Tool("burpsuite", "http-proxy", "approved HTTP proxy/replay workflow", ("BurpSuiteCommunity", "burp")),
+    Tool("cloudflared", "cloudflare", "Cloudflare tunnel/owner diagnostics for authorized zones"),
+    Tool("wrangler", "cloudflare", "Cloudflare Workers/zone tooling for owner-authorized testing"),
     Tool("aws", "cloud", "AWS CLI for cloud inventory or lab validation"),
     Tool("aliyun", "cloud", "Alibaba Cloud CLI for RAM/STS and lab validation"),
     Tool("tccli", "cloud", "Tencent Cloud CLI for CAM/STS and lab validation"),
@@ -69,6 +74,9 @@ TOOLS: tuple[Tool, ...] = (
     Tool("radare2", "binary", "reverse engineering fallback", ("r2",)),
     Tool("objdump", "binary", "disassembly and symbol inspection", ("otool",)),
     Tool("xxd", "binary", "hex inspection"),
+    Tool("wasm-objdump", "binary", "WASM import/export and section inspection", ("wasm2wat",)),
+    Tool("jadx", "mobile", "Android APK Java/Kotlin decompilation"),
+    Tool("apktool", "mobile", "Android APK resource and manifest decoding"),
     Tool("binwalk", "forensics", "firmware/file carving"),
     Tool("foremost", "forensics", "file carving"),
     Tool("volatility", "forensics", "memory forensics", ("vol", "volatility3")),
@@ -84,6 +92,11 @@ PY_MODULES: tuple[PyModule, ...] = (
     PyModule("beautifulsoup4", "python-http", "HTML parsing for passive analysis", "bs4"),
     PyModule("lxml", "python-http", "HTML/XML parsing", "lxml"),
     PyModule("pyyaml", "python-passive", "YAML config parsing", "yaml"),
+    PyModule("sourcemap", "python-js-reverse", "offline sourcemap parsing", "sourcemap"),
+    PyModule("esprima", "python-js-reverse", "JavaScript AST parsing for static triage", "esprima"),
+    PyModule("playwright", "python-browser", "browser automation for authorized runtime capture", "playwright"),
+    PyModule("haralyzer", "python-browser", "HAR parsing and browser evidence analysis", "haralyzer"),
+    PyModule("protobuf", "python-protocol", "protobuf/gRPC schema and message helpers", "google.protobuf"),
     PyModule("boto3", "python-cloud", "AWS SDK for lab validation and offline helpers", "boto3"),
     PyModule("aliyun-python-sdk-core", "python-cloud", "Alibaba Cloud SDK for lab validation", "aliyunsdkcore"),
     PyModule("tencentcloud-sdk-python", "python-cloud", "Tencent Cloud SDK for lab validation", "tencentcloud"),
@@ -99,7 +112,10 @@ PY_MODULES: tuple[PyModule, ...] = (
 )
 
 ACTIVE_GROUPS = {"http", "web-enum", "web-scan", "network"}
-SPECIALIZED_GROUPS = {"binary", "mobile", "forensics", "python-binary", "python-mobile"}
+SPECIALIZED_GROUPS = {
+    "binary", "mobile", "forensics", "http-proxy",
+    "python-binary", "python-mobile", "python-js-reverse", "python-browser", "python-protocol",
+}
 
 
 def resolve_tool(tool: Tool) -> dict:

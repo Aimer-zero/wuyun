@@ -1,0 +1,4 @@
+interface:
+  display_name: "Wuyun JS Reverse"
+  short_description: "Frontend bundle and API surface research"
+  default_prompt: "Use $wuyun-js-reverse with $wuyun to passively extract JS bundle endpoints, sourcemaps, WebSocket/GraphQL hints, auth/signing logic, and evidence-backed Web/API follow-up hypotheses."

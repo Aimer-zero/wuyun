@@ -1,0 +1,4 @@
+interface:
+  display_name: "Wuyun Browser Runtime"
+  short_description: "Browser runtime and risk-control triage"
+  default_prompt: "Use $wuyun-browser-runtime with $wuyun to plan isolated browser runtime evidence capture, analyze HAR/DevTools traces, attribute WAF/CDN/bot-defense behavior, and produce owner-assisted validation steps without evasion."

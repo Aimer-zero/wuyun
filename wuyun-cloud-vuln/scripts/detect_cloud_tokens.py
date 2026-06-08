@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Detect cloud credential-shaped evidence in text without validating it online.
 
-The script is intentionally offline and redaction-first. It never contacts cloud
-APIs, never persists raw credential values, and defaults to Markdown output that
-is safe to paste into a vulnerability report.
+The script is intentionally offline. It never contacts cloud APIs. By default it
+emits compact evidence. Pass --complete for authorized private reports that need
+full in-scope values.
 """
 from __future__ import annotations
 
@@ -55,17 +55,19 @@ class Evidence:
     provider: str
     kind: str
     field: str
-    value_redacted: str
+    value: str
     confidence: str
     source: str
 
 
-def redact(value: str, sensitive: bool = True) -> str:
+def format_value(value: str, sensitive: bool = True, complete: bool = False) -> str:
     value = value.strip().strip('"\'')
     if not value:
         return "<empty>"
+    if complete:
+        return value
     if len(value) <= 8:
-        return f"<redacted len={len(value)}>" if sensitive else value
+        return f"<compact len={len(value)}>" if sensitive else value
     if sensitive:
         return f"{value[:4]}…{value[-4:]} (len={len(value)})"
     if len(value) > 64:
@@ -89,7 +91,7 @@ def provider_from_fields(fields: dict[str, list[str]]) -> tuple[str, str]:
     return "unknown", "low"
 
 
-def scan_text(text: str, source: str) -> list[Evidence]:
+def scan_text(text: str, source: str, complete: bool = False) -> list[Evidence]:
     evidence: list[Evidence] = []
     fields: dict[str, list[str]] = {}
     for match in FIELD_RE.finditer(text):
@@ -101,11 +103,11 @@ def scan_text(text: str, source: str) -> list[Evidence]:
     for key, values in sorted(fields.items()):
         sensitive = key.lower() in SENSITIVE_FIELDS or "secret" in key.lower() or "token" in key.lower()
         for value in values[:10]:
-            evidence.append(Evidence(provider, "field", key, redact(value, sensitive=sensitive), base_confidence, source))
+            evidence.append(Evidence(provider, "field", key, format_value(value, sensitive=sensitive, complete=complete), base_confidence, source))
 
     for pattern_provider, kind, regex in INDICATOR_PATTERNS:
         for match in regex.finditer(text):
-            evidence.append(Evidence(pattern_provider, kind, "pattern", redact(match.group(0)), "medium", source))
+            evidence.append(Evidence(pattern_provider, kind, "pattern", format_value(match.group(0), complete=complete), "medium", source))
 
     lowered = text.lower()
     for hint_provider, hint in METADATA_HINTS:
@@ -119,7 +121,7 @@ def dedupe(items: Iterable[Evidence]) -> list[Evidence]:
     seen: set[tuple[str, str, str, str, str]] = set()
     out: list[Evidence] = []
     for item in items:
-        key = (item.provider, item.kind, item.field, item.value_redacted, item.source)
+        key = (item.provider, item.kind, item.field, item.value, item.source)
         if key not in seen:
             seen.add(key)
             out.append(item)
@@ -149,44 +151,45 @@ def confidence_summary(items: list[Evidence]) -> str:
     return "none"
 
 
-def print_markdown(items: list[Evidence]) -> None:
+def print_markdown(items: list[Evidence], complete: bool = False) -> None:
     print("# Cloud Credential Evidence Triage")
     print()
     print(f"- Findings: `{len(items)}`")
     print(f"- Overall confidence: `{confidence_summary(items)}`")
     print("- Online validation: `not performed`")
-    print("- Redaction: raw credential-like values were not printed")
+    print(f"- Evidence mode: `{'complete in-scope values' if complete else 'compact values'}`")
     print()
     if not items:
         print("No configured cloud credential indicators were detected. This is not proof of absence.")
         return
-    print("| Provider | Kind | Field | Redacted evidence | Confidence | Source |")
+    print("| Provider | Kind | Field | Evidence | Confidence | Source |")
     print("|---|---|---|---|---|---|")
     for item in items:
         print(
-            f"| {item.provider} | {item.kind} | `{item.field}` | `{item.value_redacted}` | {item.confidence} | `{item.source}` |"
+            f"| {item.provider} | {item.kind} | `{item.field}` | `{item.value}` | {item.confidence} | `{item.source}` |"
         )
     print()
     print("## Safe Next Step")
-    print("- Production/bounty: rotate exposed credentials, preserve redacted evidence, and infer impact offline from role/policy context.")
+    print("- Production/bounty: rotate exposed credentials, preserve complete in-scope evidence for the authorized private report, and infer impact offline from role/policy context.")
     print("- CTF/lab: use only the minimum cloud action needed to retrieve the intended artifact.")
 
 
 def main(argv: list[str]) -> int:
-    parser = argparse.ArgumentParser(description="Offline redacted cloud token evidence detector.")
+    parser = argparse.ArgumentParser(description="Offline cloud token evidence detector.")
     parser.add_argument("paths", nargs="*", help="text/JSON evidence files; stdin is used when omitted")
-    parser.add_argument("--json", action="store_true", help="emit redacted JSON")
+    parser.add_argument("--json", action="store_true", help="emit JSON")
+    parser.add_argument("--complete", action="store_true", help="emit complete in-scope values for authorized private reports")
     args = parser.parse_args(argv)
 
     findings: list[Evidence] = []
     for source, text in read_inputs(args.paths):
-        findings.extend(scan_text(text, source))
+        findings.extend(scan_text(text, source, complete=args.complete))
     findings = dedupe(findings)
 
     if args.json:
-        print(json.dumps({"findings": [asdict(item) for item in findings], "online_validation": False}, ensure_ascii=False, indent=2))
+        print(json.dumps({"findings": [asdict(item) for item in findings], "online_validation": False, "complete": args.complete}, ensure_ascii=False, indent=2))
     else:
-        print_markdown(findings)
+        print_markdown(findings, complete=args.complete)
     return 0
 
 

@@ -12,14 +12,14 @@ Use for AWS metadata exposure analysis. AWS EC2 instance metadata is normally re
 Use offline detection:
 
 ```bash
-python3 wuyun-cloud-vuln/scripts/detect_cloud_tokens.py evidence.txt
+python3 wuyun-cloud-vuln/scripts/detect_cloud_tokens.py --complete evidence.txt
 ```
 
 ## Production-Safe Rules
 
 - Do not use exposed credentials to call `ListBuckets`, `DescribeInstances`, `GetObject`, `GetSecretValue`, or equivalent APIs unless the task explicitly permits that exact action.
 - Controlled callback proof plus code-level reachability is usually enough for a report.
-- If credentials appear, redact and rotate; do not test breadth by enumerating resources.
+- If credentials appear, include complete in-scope evidence in the authorized private report and rotate; do not test breadth by enumerating resources.
 
 ## Remediation
 

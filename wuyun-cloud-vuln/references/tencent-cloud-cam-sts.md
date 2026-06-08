@@ -14,7 +14,7 @@ Tencent Cloud temporary credentials commonly include:
 Run offline detection:
 
 ```bash
-python3 wuyun-cloud-vuln/scripts/detect_cloud_tokens.py evidence.txt
+python3 wuyun-cloud-vuln/scripts/detect_cloud_tokens.py --complete evidence.txt
 ```
 
 ## Safe Impact Triage

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Wuyun Protocol Analysis"
+  short_description: "HAR, WebSocket, GraphQL, and protocol inventory"
+  default_prompt: "Use $wuyun-protocol-analysis with $wuyun to passively inventory HAR/proxy/source protocol surfaces, model WebSocket/GraphQL/RPC flows, and produce safe validation hypotheses without replaying traffic by default."

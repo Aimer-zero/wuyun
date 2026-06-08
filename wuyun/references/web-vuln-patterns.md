@@ -66,7 +66,7 @@ Hypotheses:
 Safe validation:
 
 - Use inert markers first, then non-executing payloads if needed.
-- Prefer local reproduction or screenshots with sensitive content redacted.
+- Prefer local reproduction or screenshots containing complete in-scope evidence only.
 - Avoid payloads that exfiltrate cookies or data.
 
 ## API Logic

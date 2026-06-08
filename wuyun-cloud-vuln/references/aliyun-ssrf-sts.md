@@ -7,8 +7,8 @@ Use for Aliyun cloud SSRF triage. Aliyun ECS metadata commonly uses the link-loc
 Credential-shaped Aliyun evidence usually contains these fields:
 
 - `AccessKeyId` — temporary IDs often start with an STS-style prefix.
-- `AccessKeySecret` — secret material; always redact.
-- `SecurityToken` — session token; always redact.
+- `AccessKeySecret` — secret material; include completely when it is in-scope evidence for an authorized private report.
+- `SecurityToken` — session token; include completely when it is in-scope evidence for an authorized private report.
 - `Expiration` — token validity end time.
 - `Code` — success/error indicator.
 - role name from the metadata path or response context.
@@ -16,7 +16,7 @@ Credential-shaped Aliyun evidence usually contains these fields:
 Run offline detection:
 
 ```bash
-python3 wuyun-cloud-vuln/scripts/detect_cloud_tokens.py evidence.txt
+python3 wuyun-cloud-vuln/scripts/detect_cloud_tokens.py --complete evidence.txt
 ```
 
 ## Production-Safe Impact Triage
@@ -24,7 +24,7 @@ python3 wuyun-cloud-vuln/scripts/detect_cloud_tokens.py evidence.txt
 Do not call OSS/RDS/ECS/RAM APIs with exposed credentials in production-like scope. Infer impact from:
 
 - credential type and provider fields;
-- RAM role name or service name, redacted;
+- RAM role name or service name;
 - code/config showing the role is attached to the SSRF-capable compute;
 - user-provided policy document, if supplied by the program owner;
 - offline policy analysis with `analyze_aliyun_sts_policy.py`.

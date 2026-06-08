@@ -11,10 +11,11 @@ Use this companion with `$wuyun` for Web/API vulnerability research. It supports
 
 - Work from the task target and mode: `online-web-api`, `code-audit`, `production-safe-review`, `bug-bounty`, or `ctf-lab`.
 - For online targets, start with low-impact fingerprinting, crawling, endpoint discovery, headers/cookies review, robots/sitemap/OpenAPI checks, and request/response mapping. Use source/config/OpenAPI review when available.
-- Avoid credential brute force, unrelated tenant enumeration, data dumping, webshell uploads, and high-volume scanning in production-like contexts.
-- Use synthetic IDs, owned accounts, inert markers, and redacted request/response evidence.
+- If Cloudflare/CDN/WAF/Bot Management changes results, preserve Ray IDs and classify CDN/WAF/challenge/origin behavior before attempting more tests.
+- Avoid credential brute force, unrelated tenant enumeration, data dumping, webshell uploads, CAPTCHA/Turnstile automation, proxy rotation, generic WAF-evasion payload packs, and high-volume scanning in production-like contexts.
+- Use synthetic IDs, owned accounts, inert markers, and complete in-scope request/response evidence for authorized private reports.
 - CTF/lab mode may exploit the intended challenge artifact, but keep replay steps minimal and scoped.
-- The user is responsible for permission and acceptable use; Wuyun focuses on bounded research, evidence quality, and remediation.
+- The user is responsible for permission and acceptable use; Wuyun focuses on bounded research, evidence quality, and remediation. Do not automatically mask in-scope evidence needed for the report.
 
 ## Workflow
 
@@ -24,9 +25,9 @@ Use this companion with `$wuyun` for Web/API vulnerability research. It supports
    - Online: crawl reachable paths, inspect HTML/JS bundles, collect API calls, parse Swagger/OpenAPI, compare headers/cookies, and build a request inventory.
    - Source: `scripts/extract_routes.py <repo>` for route leads.
    - Spec: `scripts/analyze_openapi.py openapi.yaml` for auth and parameter leads.
-4. **Generate hypotheses** across access control, authn/authz, injection, SSRF, file handling, XSS/SSTI, and business logic.
-5. **Validate with minimal impact**: replay requests, compare roles/accounts with `scripts/request_diff.py` outputs or captured HTTP messages, change one variable at a time, and keep fuzzing low-rate and targeted.
-6. **Report**: separate confirmed/likely/speculative leads; include source → boundary → sink traces, redacted evidence, confidence, remediation, and regression tests.
+4. **Generate hypotheses** across access control, authn/authz, injection, SSRF, file handling, XSS/SSTI, business logic, and Cloudflare/WAF interference when observed.
+5. **Validate with minimal impact**: replay requests, compare roles/accounts with `scripts/request_diff.py --complete` outputs or captured HTTP messages, change one variable at a time, keep fuzzing low-rate and targeted, and use `scripts/cloudflare_triage.py` for captured Cloudflare blocks/challenges.
+6. **Report**: separate confirmed/likely/speculative leads; include source → boundary → sink traces, complete in-scope evidence, confidence, remediation, and regression tests.
 
 ## References
 
@@ -40,6 +41,7 @@ Load only the relevant reference:
 - `references/xss-ssti.md`: reflected/stored/DOM XSS and server-side template injection.
 - `references/business-logic.md`: workflow, race, replay, pricing, quota, and state-machine bugs.
 - `references/openapi-review.md`: OpenAPI/Swagger review checklist.
+- `references/cloudflare-waf.md`: Cloudflare CDN/WAF/Bot Management/Turnstile-aware validation workflow.
 - `references/reporting.md`: compact Web/API finding template.
 
 ## Output Shape
@@ -55,7 +57,7 @@ Load only the relevant reference:
 - Source/input:
 - Boundary/control:
 - Sink/decision/state change:
-- Minimal redacted proof:
+- Complete in-scope proof:
 
 ## Confidence
 - Level:

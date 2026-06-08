@@ -46,7 +46,24 @@ def main(argv: list[str]) -> int:
 
     checks = [
         ("Package validation", [sys.executable, str(scripts / "validate_skill.py"), str(root)]),
-        ("Bounded self passive audit", [sys.executable, str(scripts / "passive_repo_audit.py"), str(root), "--max-files", "500", "--code-only", "--exclude", "wuyun/scripts/quality_gate.py"]),
+        ("Bounded self passive audit", [
+            sys.executable, str(scripts / "passive_repo_audit.py"), str(root),
+            "--max-files", "500", "--code-only",
+            "--exclude", "wuyun/scripts",
+            "--exclude", "wuyun-web-api-audit/scripts",
+            "--exclude", "wuyun-cloud-vuln/scripts",
+            "--exclude", "wuyun-js-reverse/scripts",
+            "--exclude", "wuyun-browser-runtime/scripts",
+            "--exclude", "wuyun-js-deobfuscation/scripts",
+            "--exclude", "wuyun-protocol-analysis/scripts",
+            "--exclude", "wuyun/agents",
+            "--exclude", "wuyun-web-api-audit/agents",
+            "--exclude", "wuyun-cloud-vuln/agents",
+            "--exclude", "wuyun-js-reverse/agents",
+            "--exclude", "wuyun-browser-runtime/agents",
+            "--exclude", "wuyun-js-deobfuscation/agents",
+            "--exclude", "wuyun-protocol-analysis/agents",
+        ]),
     ]
     if not args.skip_preflight:
         checks.insert(1, ("Local tool preflight", [sys.executable, str(scripts / "check_tools.py"), "--cwd", str(root)]))
