@@ -17,8 +17,10 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import re
 import sys
 from pathlib import Path
+from typing import Any
 from urllib.parse import urlparse
 
 
@@ -27,7 +29,21 @@ HOOK_JS = r"""
   if (globalThis.__wuyunHookInstalled) return;
   globalThis.__wuyunHookInstalled = true;
   const PREFIX = "__WUYUN_HOOK__";
+  const allowedHosts = new Set((globalThis.__wuyunScopeHosts || []).map((item) => String(item).toLowerCase()));
   const now = () => new Date().toISOString();
+  const hostOf = (value) => {
+    try {
+      return new URL(String(value), location.href).hostname.toLowerCase();
+    } catch (_) {
+      return "";
+    }
+  };
+  const scopedEvent = (event) => {
+    if (!allowedHosts.size || !event || !event.url) return event;
+    const host = hostOf(event.url);
+    if (!host || allowedHosts.has(host)) return event;
+    return { type: "third-party-observed", original_type: event.type, host };
+  };
   const redactUrl = (value) => {
     try {
       const url = new URL(String(value), location.href);
@@ -65,7 +81,7 @@ HOOK_JS = r"""
   };
   const emit = (event) => {
     try {
-      console.log(PREFIX + JSON.stringify({ ts: now(), ...event }));
+      console.log(PREFIX + JSON.stringify({ ts: now(), ...scopedEvent(event) }));
     } catch (_) {}
   };
 
@@ -162,6 +178,9 @@ HOOK_JS = r"""
 """
 
 
+SENSITIVE_HEADER = re.compile(r"(?i)authorization|cookie|token|secret|password|key")
+
+
 def common_limits() -> list[str]:
     return [
         "metadata-only runtime observation",
@@ -170,7 +189,62 @@ def common_limits() -> list[str]:
     ]
 
 
-def standalone_playwright_python() -> str:
+def scoped_hook_js(scope_hosts: list[str]) -> str:
+    prefix = f"globalThis.__wuyunScopeHosts = {json.dumps(scope_hosts, ensure_ascii=False)};\n"
+    return prefix + HOOK_JS
+
+
+def redact_url(raw_url: str) -> str:
+    try:
+        parsed = urlparse(raw_url)
+        query = "?<query-redacted>" if parsed.query else ""
+        fragment = "#<fragment-redacted>" if parsed.fragment else ""
+        return parsed._replace(query=query.lstrip("?"), fragment=fragment.lstrip("#")).geturl()
+    except Exception:  # noqa: BLE001
+        return raw_url[:240]
+
+
+def compact_headers(headers: dict[str, str]) -> dict[str, str]:
+    return {
+        key.lower(): "<redacted>" if SENSITIVE_HEADER.search(key) else "<present>"
+        for key in headers
+    }
+
+
+def event_allowed(event: dict, scope_hosts: list[str], include_third_party: bool) -> bool:
+    if include_third_party:
+        return True
+    raw_url = str(event.get("url", ""))
+    if not raw_url:
+        return True
+    host = urlparse(raw_url).hostname or ""
+    return host.lower() in {item.lower() for item in scope_hosts}
+
+
+async def perform_actions(page: Any, actions: list[str], settle_ms: int) -> list[dict]:
+    performed = []
+    for action in actions:
+        kind, sep, payload = action.partition(":")
+        if not sep:
+            raise ValueError(f"action must be kind:payload: {action}")
+        if kind == "click":
+            await page.click(payload)
+        elif kind == "fill":
+            selector, value = payload.split("=", 1)
+            await page.fill(selector, value)
+        elif kind == "press":
+            selector, key = payload.split("=", 1)
+            await page.press(selector, key)
+        elif kind == "wait":
+            await page.wait_for_selector(payload, timeout=settle_ms)
+        else:
+            raise ValueError(f"unsupported action kind: {kind}")
+        performed.append({"action": kind, "payload": payload})
+        await page.wait_for_timeout(settle_ms)
+    return performed
+
+
+def standalone_playwright_python(scope_hosts: list[str]) -> str:
     return (
         """#!/usr/bin/env python3
 \"\"\"Standalone Wuyun Playwright runtime hook capture.
@@ -189,6 +263,7 @@ from urllib.parse import urlparse
 
 
 HOOK_JS = __HOOK_JSON__
+SCOPE_HOSTS = __SCOPE_HOSTS_JSON__
 
 
 def enforce_scope(url: str, scope_hosts: list[str]) -> None:
@@ -209,6 +284,7 @@ async def run(args: argparse.Namespace) -> int:
     async with async_playwright() as pw:
         browser = await pw.chromium.launch(headless=args.headless)
         context = await browser.new_context(ignore_https_errors=False)
+        await context.add_init_script("globalThis.__wuyunScopeHosts = " + json.dumps(SCOPE_HOSTS) + ";")
         await context.add_init_script(HOOK_JS)
         page = await context.new_page()
 
@@ -268,11 +344,12 @@ if __name__ == "__main__":
     raise SystemExit(main(sys.argv[1:]))
 """
         .replace("__HOOK_JSON__", json.dumps(HOOK_JS))
+        .replace("__SCOPE_HOSTS_JSON__", json.dumps(scope_hosts, ensure_ascii=False))
         .replace("__LIMITS_JSON__", json.dumps(common_limits(), ensure_ascii=False))
     )
 
 
-def standalone_puppeteer() -> str:
+def standalone_puppeteer(scope_hosts: list[str]) -> str:
     return (
         """#!/usr/bin/env node
 // Standalone Wuyun Puppeteer runtime hook capture.
@@ -283,6 +360,7 @@ const fs = require("fs");
 const puppeteer = require("puppeteer");
 
 const HOOK_JS = __HOOK_JSON__;
+const SCOPE_HOSTS = __SCOPE_HOSTS_JSON__;
 const LIMITS = __LIMITS_JSON__;
 
 function parseArgs(argv) {
@@ -321,6 +399,7 @@ async function main() {
   const events = [];
   const browser = await puppeteer.launch({ headless: Boolean(args.headless) });
   const page = await browser.newPage();
+  await page.evaluateOnNewDocument((scopeHosts) => { globalThis.__wuyunScopeHosts = scopeHosts; }, SCOPE_HOSTS);
   await page.evaluateOnNewDocument(HOOK_JS);
   page.on("console", (message) => {
     const text = message.text();
@@ -351,6 +430,7 @@ main().catch((error) => {
 });
 """
         .replace("__HOOK_JSON__", json.dumps(HOOK_JS))
+        .replace("__SCOPE_HOSTS_JSON__", json.dumps(scope_hosts, ensure_ascii=False))
         .replace("__LIMITS_JSON__", json.dumps(common_limits(), ensure_ascii=False))
     )
 
@@ -446,11 +526,11 @@ def enforce_scope(url: str, scope_hosts: list[str]) -> None:
 
 def generate_artifact(target: str, scope_hosts: list[str]) -> str:
     if target == "browser-js":
-        return HOOK_JS
+        return scoped_hook_js(scope_hosts)
     if target == "playwright-python":
-        return standalone_playwright_python()
+        return standalone_playwright_python(scope_hosts)
     if target == "puppeteer":
-        return standalone_puppeteer()
+        return standalone_puppeteer(scope_hosts)
     if target == "frida-android-webview":
         return frida_android_webview(scope_hosts)
     raise ValueError(f"unsupported target: {target}")
@@ -474,31 +554,73 @@ async def run_playwright(args: argparse.Namespace) -> int:
 
     enforce_scope(args.url, args.scope_host)
     events: list[dict] = []
+    third_party_counts: dict[str, int] = {}
+    actions_performed: list[dict] = []
     async with async_playwright() as pw:
         browser = await pw.chromium.launch(headless=args.headless)
         context = await browser.new_context(ignore_https_errors=False)
+        await context.add_init_script("globalThis.__wuyunScopeHosts = " + json.dumps(args.scope_host) + ";")
         await context.add_init_script(HOOK_JS)
         page = await context.new_page()
+
+        def append_event(event: dict) -> None:
+            if len(events) >= args.max_events:
+                return
+            if event_allowed(event, args.scope_host, args.include_third_party):
+                events.append(event)
+                return
+            host = urlparse(str(event.get("url", ""))).hostname or "<unknown>"
+            third_party_counts[host] = third_party_counts.get(host, 0) + 1
 
         def on_console(message):
             text = message.text
             if text.startswith("__WUYUN_HOOK__"):
                 try:
-                    events.append(json.loads(text.removeprefix("__WUYUN_HOOK__")))
+                    append_event(json.loads(text.removeprefix("__WUYUN_HOOK__")))
                 except json.JSONDecodeError:
                     pass
 
+        def on_request(request):
+            append_event({
+                "ts": "",
+                "source": "playwright-network",
+                "type": "request",
+                "method": request.method,
+                "url": redact_url(request.url),
+                "resource_type": request.resource_type,
+                "headers": compact_headers(request.headers),
+            })
+
+        def on_response(response):
+            append_event({
+                "ts": "",
+                "source": "playwright-network",
+                "type": "response",
+                "status": response.status,
+                "url": redact_url(response.url),
+                "content_type": response.headers.get("content-type", ""),
+            })
+
         page.on("console", on_console)
+        page.on("request", on_request)
+        page.on("response", on_response)
         await page.goto(args.url, wait_until=args.wait_until, timeout=int(args.timeout * 1000))
+        actions_performed = await perform_actions(page, args.action, int(args.action_settle * 1000))
         await page.wait_for_timeout(int(args.duration * 1000))
         await browser.close()
 
     payload = {
         "status": "captured",
         "url": args.url,
+        "scope_hosts": args.scope_host,
+        "events_captured": len(events),
+        "third_party_suppressed": third_party_counts,
+        "actions_performed": actions_performed,
         "events": events,
         "limits": [
             *common_limits(),
+            "Playwright network capture records metadata only",
+            "third-party network metadata is suppressed unless --include-third-party is set",
         ],
     }
     if args.output:
@@ -531,6 +653,10 @@ def main(argv: list[str]) -> int:
     run.add_argument("--timeout", type=float, default=30.0)
     run.add_argument("--wait-until", choices=["load", "domcontentloaded", "networkidle", "commit"], default="domcontentloaded")
     run.add_argument("--headless", action="store_true", help="run headless browser")
+    run.add_argument("--action", action="append", default=[], help="optional observed action: click:selector, fill:selector=value, press:selector=key, wait:selector")
+    run.add_argument("--action-settle", type=float, default=0.5, help="seconds to wait after each action")
+    run.add_argument("--max-events", type=int, default=1000, help="maximum events to retain")
+    run.add_argument("--include-third-party", action="store_true", help="retain third-party network metadata instead of suppressing by host")
     run.add_argument("--output", help="write JSON capture to file")
 
     args = parser.parse_args(argv)
@@ -542,6 +668,12 @@ def main(argv: list[str]) -> int:
         return 2
     if not args.scope_host:
         print("error: --scope-host is required with --authorize-runtime-observation", file=sys.stderr)
+        return 2
+    if args.duration < 0 or args.action_settle < 0:
+        print("error: --duration and --action-settle must be non-negative", file=sys.stderr)
+        return 2
+    if args.max_events > 5000:
+        print("error: --max-events must be <= 5000", file=sys.stderr)
         return 2
     try:
         return asyncio.run(run_playwright(args))
