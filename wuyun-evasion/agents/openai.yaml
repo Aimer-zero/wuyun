@@ -1,4 +1,4 @@
 interface:
   display_name: "Wuyun Evasion Analysis"
-  short_description: "Defensive canonicalization, parser mismatch, and origin exposure review"
-  default_prompt: "Use $wuyun-evasion with $wuyun and $wuyun-browser-runtime to analyze benign canonicalization differences, parser mismatches, and owner-assisted origin exposure without stealth automation or WAF bypass execution."
+  short_description: "Defensive normalization and detection-resilience planning"
+  default_prompt: "Use $wuyun-evasion with $wuyun and $wuyun-browser-runtime to analyze benign canonicalization differences, parser mismatches, owner-assisted origin exposure, and detection resilience without bypass payload generation, stealth automation, fingerprint spoofing, or AI filter bypass libraries."

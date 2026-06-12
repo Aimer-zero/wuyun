@@ -139,18 +139,20 @@ def iter_files(root: Path, max_files: int, max_size: int, code_only: bool, exclu
 
 
 def format_evidence(category: str, line: str, complete: bool = False) -> str:
+    """Format one evidence line without leaking secret values.
+
+    `complete=True` preserves full non-secret context for private remediation
+    reports, but secret-like values and private key blocks are still redacted.
+    """
     compact = " ".join(line.strip().split())
-    if complete:
-        return compact
-    if len(compact) > 180:
-        compact = compact[:177] + "..."
     compact = re.sub(
-        r"(?i)(api[_-]?key|secret|token|password|passwd|private[_-]?key|access[_-]?key|auth[_-]?key)(\b\s*[:=]\s*)['\"]?[^'\"\s]+",
-        r"\1\2<compact-sensitive-value>",
+        r"(?i)(api[_-]?key|secret|token|password|passwd|private[_-]?key|access[_-]?key|auth[_-]?key)(\b\s*[:=]\s*)['\"]?[^'\"\s]+['\"]?",
+        r"\1\2<redacted-sensitive-value>",
         compact,
     )
-    if category == "secret":
-        compact = re.sub(r"-----BEGIN [^-]+PRIVATE KEY-----", "<compact private key block>", compact)
+    compact = re.sub(r"-----BEGIN [^-]+PRIVATE KEY-----", "<redacted private key block>", compact)
+    if not complete and len(compact) > 180:
+        compact = compact[:177] + "..."
     return compact
 
 
@@ -245,7 +247,7 @@ def build_hypotheses(hits: list[Hit]) -> list[str]:
     if "unsafe-deserialization" in rules:
         hypotheses.append("Confirm whether untrusted data reaches unsafe deserialization or polymorphic parsing; prefer safe local fixtures for validation.")
     if {"secret-like-assignment", "private-key-block"} & rules:
-        hypotheses.append("Confirm whether secret-like values are real, in-scope, and active; rotate if exposed, and include complete values only in authorized private reports.")
+        hypotheses.append("Confirm whether secret-like values are real, in-scope, and active; rotate if exposed, and include exact values only through an approved secure channel, not in tool output.")
     if {"auth-todo-or-bypass", "jwt-unverified"} & rules:
         hypotheses.append("Prioritize comments/branches and token handling that mention auth bypass, permissions, tenants, ownership, or unverified JWTs.")
     if {"debug-enabled", "wide-cors", "weak-crypto"} & rules:
@@ -358,7 +360,7 @@ def main(argv: list[str]) -> int:
     parser.add_argument("--max-size", type=int, default=512_000, help="maximum file size in bytes")
     parser.add_argument("--code-only", action="store_true", help="skip documentation/example files to reduce false positives")
     parser.add_argument("--exclude", action="append", default=[], help="relative file or directory prefix to skip; may be repeated")
-    parser.add_argument("--complete-evidence", action="store_true", help="emit complete in-scope evidence for authorized private reports")
+    parser.add_argument("--complete-evidence", action="store_true", help="preserve full non-secret context; secret-like values remain redacted")
     args = parser.parse_args(argv)
 
     root = Path(args.path)

@@ -386,7 +386,7 @@ function parseArgs(argv) {
 function enforceScope(rawUrl, scopeHosts) {
   const host = new URL(rawUrl).hostname.toLowerCase();
   const allowed = new Set(scopeHosts.map((item) => String(item).toLowerCase()));
-  if (!allowed.has(host)) throw new Error(`target host \`${host}\` is not in --scope-host allowlist`);
+  if (!allowed.has(host)) throw new Error(`target host ${JSON.stringify(host)} is not in --scope-host allowlist`);
 }
 
 async function main() {

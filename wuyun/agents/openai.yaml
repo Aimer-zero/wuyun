@@ -1,4 +1,4 @@
 interface:
   display_name: "Wuyun"
   short_description: "Evidence-driven vulnerability research"
-  default_prompt: "Use $wuyun to classify scope, choose safe tools, map online/offline attack surface, validate evidence-backed findings, and report remediation-focused results."
+  default_prompt: "Use $wuyun for an authorized security task: classify the user-declared scope, choose safe tools, map online/offline attack surface, validate evidence-backed findings, and report remediation-focused results."

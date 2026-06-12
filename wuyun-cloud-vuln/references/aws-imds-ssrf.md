@@ -19,7 +19,7 @@ python3 wuyun-cloud-vuln/scripts/detect_cloud_tokens.py --complete evidence.txt
 
 - Do not use exposed credentials to call `ListBuckets`, `DescribeInstances`, `GetObject`, `GetSecretValue`, or equivalent APIs unless the task explicitly permits that exact action.
 - Controlled callback proof plus code-level reachability is usually enough for a report.
-- If credentials appear, include complete in-scope evidence in the authorized private report and rotate; do not test breadth by enumerating resources.
+- If credentials appear, redact them in tool output, provide a secure evidence pointer for the owner, rotate them, and do not test breadth by enumerating resources.
 
 ## Remediation
 

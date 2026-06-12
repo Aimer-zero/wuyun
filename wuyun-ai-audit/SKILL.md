@@ -1,11 +1,15 @@
 ---
 name: wuyun-ai-audit
-description: AI/LLM application security companion for Wuyun. Use for prompt-injection surface mapping, direct/indirect/multimodal injection test planning, system-prompt leakage risk triage, RAG poisoning workflow review, agent tool-abuse analysis, file/HTTP/shell tool boundary checks, model output handling, and safe canary-based validation without exfiltrating secrets or private data.
+description: AI/LLM application security companion for Wuyun. Use for LLM, RAG, agent, chatbot, AI coding assistant, multimodal, or model-mediated workflow audits; prompt-injection surface mapping; direct/indirect/multimodal injection test planning; system-prompt leakage risk triage; RAG poisoning workflow review; agent tool-abuse analysis; file/HTTP/shell tool boundary checks; model output handling; and safe canary-based validation without exfiltrating secrets or private data.
 ---
 
 # Wuyun AI Audit
 
 Use this companion with `$wuyun` when the target includes LLMs, RAG, agents, tool use, chatbots, AI coding assistants, document/image/audio ingestion, or model-mediated workflows.
+
+## Trigger Guidance
+
+Proactively use this companion when the user mentions prompt injection, RAG, agent tools, AI app security, chatbot security, AI coding assistants, multimodal inputs, or any system where an LLM mediates decisions, data access, or tool calls.
 
 ## Safety Boundary
 

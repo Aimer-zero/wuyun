@@ -2,8 +2,8 @@
 """Detect cloud credential-shaped evidence in text without validating it online.
 
 The script is intentionally offline. It never contacts cloud APIs. By default it
-emits compact evidence. Pass --complete for authorized private reports that need
-full in-scope values.
+emits compact evidence. Pass --complete to preserve full non-sensitive
+context; credential-like values remain redacted in tool output.
 """
 from __future__ import annotations
 
@@ -64,12 +64,12 @@ def format_value(value: str, sensitive: bool = True, complete: bool = False) -> 
     value = value.strip().strip('"\'')
     if not value:
         return "<empty>"
+    if sensitive:
+        if len(value) <= 8:
+            return f"<redacted len={len(value)}>"
+        return f"{value[:4]}…{value[-4:]} (len={len(value)})"
     if complete:
         return value
-    if len(value) <= 8:
-        return f"<compact len={len(value)}>" if sensitive else value
-    if sensitive:
-        return f"{value[:4]}…{value[-4:]} (len={len(value)})"
     if len(value) > 64:
         return f"{value[:32]}…{value[-8:]} (len={len(value)})"
     return value
@@ -157,7 +157,7 @@ def print_markdown(items: list[Evidence], complete: bool = False) -> None:
     print(f"- Findings: `{len(items)}`")
     print(f"- Overall confidence: `{confidence_summary(items)}`")
     print("- Online validation: `not performed`")
-    print(f"- Evidence mode: `{'complete in-scope values' if complete else 'compact values'}`")
+    print(f"- Evidence mode: `{'full non-sensitive context; credentials redacted' if complete else 'compact values'}`")
     print()
     if not items:
         print("No configured cloud credential indicators were detected. This is not proof of absence.")
@@ -170,7 +170,7 @@ def print_markdown(items: list[Evidence], complete: bool = False) -> None:
         )
     print()
     print("## Safe Next Step")
-    print("- Production/bounty: rotate exposed credentials, preserve complete in-scope evidence for the authorized private report, and infer impact offline from role/policy context.")
+    print("- Production/bounty: rotate exposed credentials, preserve redacted indicators in tool output, exchange exact values only through approved owner-controlled channels, and infer impact offline from role/policy context.")
     print("- CTF/lab: use only the minimum cloud action needed to retrieve the intended artifact.")
 
 
@@ -178,7 +178,7 @@ def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(description="Offline cloud token evidence detector.")
     parser.add_argument("paths", nargs="*", help="text/JSON evidence files; stdin is used when omitted")
     parser.add_argument("--json", action="store_true", help="emit JSON")
-    parser.add_argument("--complete", action="store_true", help="emit complete in-scope values for authorized private reports")
+    parser.add_argument("--complete", action="store_true", help="preserve full non-sensitive context; credential-like values remain redacted")
     args = parser.parse_args(argv)
 
     findings: list[Evidence] = []

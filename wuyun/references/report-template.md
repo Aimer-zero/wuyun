@@ -46,7 +46,7 @@ Describe the end-to-end flow:
 - Sink/Decision: `<query/template/command/file/action>`
 ```
 
-Include exact decisive details and enough surrounding context for a human reviewer to judge validity. Do not mask in-scope evidence in an authorized private report. Avoid dumping large unrelated logs when a precise excerpt, path, hash, timestamp, or command output proves the point.
+Include exact non-secret decisive details and enough surrounding context for a human reviewer to judge validity. Redact live secrets/tokens/private data in normal tool output and use secure owner-controlled channels for exact sensitive values. Avoid dumping large unrelated logs when a precise excerpt, path, hash, timestamp, or command output proves the point.
 
 ## 3. Supporting Evidence
 

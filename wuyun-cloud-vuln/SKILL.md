@@ -10,11 +10,11 @@ Use this companion with `$wuyun` when the task involves online cloud-security an
 ## Safety Boundary
 
 - Work from the task target and mode: `online-cloud`, `production-safe`, `bug-bounty`, `ctf-lab`, or `local-code-audit`.
-- For online cloud targets, support low-impact fingerprinting, DNS/CNAME/CDN/storage identification, cloud header/error analysis, object storage exposure checks, SSRF callback proof, metadata/STS triage, and complete in-scope impact analysis.
-- If real cloud temporary credentials appear in authorized evidence, include the complete in-scope values needed for remediation and infer impact from metadata, policy documents, token shape, and context first.
+- For online cloud targets, support low-impact fingerprinting, DNS/CNAME/CDN/storage identification, cloud header/error analysis, object storage exposure checks, SSRF callback proof, metadata/STS triage, and redacted in-scope impact analysis.
+- If real cloud temporary credentials appear in authorized evidence, redact them in tool output, preserve only credential shape/metadata needed for triage, and instruct the owner to exchange exact values through an approved secure channel for rotation/remediation.
 - Avoid listing buckets, databases, instances, users, secrets, logs, or business data in production-like contexts. CTF/lab mode may recover the intended artifact with minimal steps.
-- Do not expose unrelated cloud keys, tokens, database records, object names, instance names, or account identifiers. For authorized private reports, output complete in-scope cloud keys, tokens, object names, instance names, and account identifiers when they are necessary to reproduce, validate, or remediate the issue.
-- The user is responsible for permission and acceptable use; Wuyun focuses on bounded research, evidence quality, complete in-scope reporting, and remediation.
+- Do not expose unrelated cloud keys, tokens, database records, object names, instance names, or account identifiers. For authorized private reports, include complete non-secret identifiers only when necessary, keep credential-like values redacted in tool output, and use secure owner-controlled channels for exact secrets.
+- The user is responsible for permission and acceptable use; Wuyun focuses on bounded research, evidence quality, redacted in-scope reporting, and remediation.
 
 ## Workflow
 
@@ -25,10 +25,10 @@ Use this companion with `$wuyun` when the task involves online cloud-security an
    - Online default: fingerprint, controlled callback URL, harmless object existence checks, or local reproduction.
    - Lab/CTF: metadata endpoint checks and credential use only as needed for the intended artifact.
 5. **Analyze evidence offline**:
-   - `scripts/detect_cloud_tokens.py --complete` for complete in-scope cloud token evidence in authorized private reports.
+   - `scripts/detect_cloud_tokens.py --complete` for full non-secret context while keeping credential-like values redacted.
    - `scripts/analyze_aliyun_sts_policy.py` for offline IAM/RAM/CAM policy impact triage.
    - `scripts/ssrf_probe_plan.py` to generate a non-executing provider-specific probe plan.
-6. **Report**: summarize source → URL validation boundary → server-side fetch → metadata/STS exposure → inferred impact; include complete in-scope evidence and remediation.
+6. **Report**: summarize source → URL validation boundary → server-side fetch → metadata/STS exposure → inferred impact; include redacted in-scope evidence, secure evidence-channel notes, and remediation.
 
 ## References
 
@@ -39,7 +39,7 @@ Load only what matches the target:
 - `references/aws-imds-ssrf.md`: AWS IMDSv1/v2 SSRF considerations and safe evidence handling.
 - `references/tencent-cloud-cam-sts.md`: Tencent Cloud CAM role credential exposure and evidence handling.
 - `references/cloud-permission-impact.md`: offline action-to-impact classification for cloud temporary credentials.
-- `references/safe-cloud-reporting.md`: report template, complete in-scope evidence handling, and remediation checklist.
+- `references/safe-cloud-reporting.md`: report template, redacted evidence handling, and remediation checklist.
 
 ## Output Shape
 
@@ -52,7 +52,7 @@ Load only what matches the target:
 ## Evidence
 - SSRF source:
 - Boundary bypass or missing control:
-- Metadata/credential indicator: <complete in-scope evidence>
+- Metadata/credential indicator: <redacted in-scope evidence pointer or token shape>
 - Impact inference:
 
 ## Minimal Validation Performed

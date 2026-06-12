@@ -10,6 +10,7 @@ VERSION="${WUYUN_VERSION:-}"
 TARGET="${WUYUN_TARGET:-both}"
 INSTALL_DIR="${WUYUN_INSTALL_DIR:-}"
 ARCHIVE_URL="${WUYUN_ARCHIVE_URL:-}"
+SOURCE_DIR="${WUYUN_SOURCE_DIR:-}"
 DRY_RUN=0
 KEEP_TEMP=0
 
@@ -17,6 +18,7 @@ SKILLS=(
   "wuyun"
   "wuyun-cloud-vuln"
   "wuyun-web-api-audit"
+  "wuyun-exploit-assist"
   "wuyun-js-reverse"
   "wuyun-browser-runtime"
   "wuyun-js-deobfuscation"
@@ -47,13 +49,14 @@ Options:
   --target <name>       codex, claude, both, or all. Default: both.
   --install-dir <dir>   Install into a custom skills directory instead of target defaults.
   --archive-url <url>   Download a custom tar.gz archive URL.
+  --source-dir <dir>    Install from an already checked-out Wuyun repository.
   --dry-run             Print what would happen without writing skill directories.
   --keep-temp           Keep the download work directory for inspection.
   -h, --help            Show this help.
 
 Environment equivalents:
   WUYUN_REPO, WUYUN_BRANCH, WUYUN_VERSION, WUYUN_TARGET, WUYUN_INSTALL_DIR,
-  WUYUN_ARCHIVE_URL
+  WUYUN_ARCHIVE_URL, WUYUN_SOURCE_DIR
 EOF
 }
 
@@ -214,6 +217,15 @@ while [ "$#" -gt 0 ]; do
       ARCHIVE_URL="${1#*=}"
       shift
       ;;
+    --source-dir)
+      [ "$#" -ge 2 ] || die "--source-dir requires a directory"
+      SOURCE_DIR="$2"
+      shift 2
+      ;;
+    --source-dir=*)
+      SOURCE_DIR="${1#*=}"
+      shift
+      ;;
     --dry-run)
       DRY_RUN=1
       shift
@@ -232,9 +244,6 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 
-need_cmd curl
-need_cmd tar
-need_cmd mktemp
 need_cmd cp
 need_cmd rm
 need_cmd mv
@@ -243,15 +252,13 @@ need_cmd find
 need_cmd head
 need_cmd date
 
-URL="$(archive_url)"
-TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/wuyun-install.XXXXXX")"
-ARCHIVE="$TMP_DIR/wuyun.tar.gz"
-EXTRACT_DIR="$TMP_DIR/src"
+TMP_DIR=""
+SRC_ROOT=""
 
 cleanup() {
-  if [ "$KEEP_TEMP" -eq 0 ]; then
+  if [ -n "$TMP_DIR" ] && [ "$KEEP_TEMP" -eq 0 ]; then
     rm -rf "$TMP_DIR"
-  else
+  elif [ -n "$TMP_DIR" ]; then
     printf 'kept temp directory: %s\n' "$TMP_DIR"
   fi
 }
@@ -259,8 +266,13 @@ trap cleanup EXIT
 
 printf 'Wuyun installer\n'
 printf '%s\n' "- repo: $REPO"
-printf '%s\n' "- source: $(source_label)"
-printf '%s\n' "- archive: $URL"
+if [ -n "$SOURCE_DIR" ]; then
+  printf '%s\n' "- source dir: $(expand_path "$SOURCE_DIR")"
+else
+  URL="$(archive_url)"
+  printf '%s\n' "- source: $(source_label)"
+  printf '%s\n' "- archive: $URL"
+fi
 printf '%s\n' "- target: $TARGET"
 if [ -n "$INSTALL_DIR" ]; then
   printf '%s\n' "- custom install dir: $(expand_path "$INSTALL_DIR")"
@@ -274,12 +286,23 @@ if [ "$DRY_RUN" -eq 1 ]; then
   exit 0
 fi
 
-mkdir -p "$EXTRACT_DIR"
-curl -fsSL --retry 3 --connect-timeout 15 "$URL" -o "$ARCHIVE"
-tar -xzf "$ARCHIVE" -C "$EXTRACT_DIR"
-
-SRC_ROOT="$(find "$EXTRACT_DIR" -mindepth 1 -maxdepth 1 -type d | head -n 1)"
-[ -n "$SRC_ROOT" ] || die "failed to locate extracted archive root"
+if [ -n "$SOURCE_DIR" ]; then
+  SRC_ROOT="$(expand_path "$SOURCE_DIR")"
+  [ -d "$SRC_ROOT/wuyun" ] || die "--source-dir must point to a Wuyun repository root"
+else
+  need_cmd curl
+  need_cmd tar
+  need_cmd mktemp
+  URL="$(archive_url)"
+  TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/wuyun-install.XXXXXX")"
+  ARCHIVE="$TMP_DIR/wuyun.tar.gz"
+  EXTRACT_DIR="$TMP_DIR/src"
+  mkdir -p "$EXTRACT_DIR"
+  curl -fsSL --retry 3 --connect-timeout 15 "$URL" -o "$ARCHIVE"
+  tar -xzf "$ARCHIVE" -C "$EXTRACT_DIR"
+  SRC_ROOT="$(find "$EXTRACT_DIR" -mindepth 1 -maxdepth 1 -type d | head -n 1)"
+  [ -n "$SRC_ROOT" ] || die "failed to locate extracted archive root"
+fi
 
 while IFS= read -r dir; do
   install_skill_dir "$SRC_ROOT" "$dir"

@@ -11,6 +11,7 @@ import py_compile
 import re
 import sys
 import tempfile
+import warnings
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
@@ -42,6 +43,7 @@ REQUIRED_SKILL_FILES = [
     "references/code-audit-patterns.md",
     "references/web-vuln-patterns.md",
     "references/ctf-mode.md",
+    "references/chain-mode.md",
     "scripts/check_tools.py",
     "scripts/cloudflare_triage.py",
     "scripts/passive_repo_audit.py",
@@ -52,6 +54,7 @@ REQUIRED_SKILL_FILES = [
     "scripts/validate_skill.py",
     "scripts/knowledge_base.py",
     "scripts/risk_report_helper.py",
+    "scripts/chain_planner.py",
 ]
 
 COMPANION_SKILLS: dict[str, list[str]] = {
@@ -87,6 +90,19 @@ COMPANION_SKILLS: dict[str, list[str]] = {
         "scripts/request_diff.py",
         "scripts/active_http_validator.py",
         "scripts/idor_case_generator.py",
+    ],
+    "wuyun-exploit-assist": [
+        "SKILL.md",
+        "agents/openai.yaml",
+        "references/ssti-payloads.md",
+        "references/deser-chains.md",
+        "references/sqli-tamper.md",
+        "references/cmdi-upload.md",
+        "references/xxe-ssrf.md",
+        "references/reporting.md",
+        "scripts/deser_chain_builder.py",
+        "scripts/sqli_payload_gen.py",
+        "scripts/ssti_probe.py",
     ],
     "wuyun-js-reverse": [
         "SKILL.md",
@@ -155,6 +171,7 @@ COMPANION_SKILLS: dict[str, list[str]] = {
         "references/origin-exposure.md",
         "scripts/canonicalization_lab.py",
         "scripts/origin_exposure_plan.py",
+        "scripts/detection_resilience_plan.py",
     ],
 }
 
@@ -265,9 +282,20 @@ def check_frontmatter(
     frontmatter = parts[1]
     body = parts[2]
     label = skill_dir.name
+    keys = [
+        line.split(":", 1)[0].strip()
+        for line in frontmatter.splitlines()
+        if line.strip() and not line.startswith((" ", "\t")) and ":" in line
+    ]
+    unexpected = sorted(set(keys) - {"name", "description"})
+    add(results, "PASS" if not unexpected else "FAIL", f"{label} frontmatter uses only name and description")
     name_pattern = rf"^name:\s*{re.escape(expected_name)}\s*$"
     add(results, "PASS" if re.search(name_pattern, frontmatter, re.M) else "FAIL", f"{label} frontmatter name is {expected_name}")
     add(results, "PASS" if re.search(r"^description:\s*.+", frontmatter, re.M | re.S) else "FAIL", f"{label} frontmatter description exists")
+    desc_match = re.search(r"^description:\s*(.+)$", frontmatter, re.M)
+    if desc_match:
+        desc_len = len(desc_match.group(1).strip())
+        add(results, "PASS" if desc_len <= 1024 else "FAIL", f"{label} frontmatter description length is acceptable ({desc_len})")
     for marker in required_body_markers:
         add(results, "PASS" if marker in body else "FAIL", f"{label} body includes {marker}")
     if expected_name == "wuyun":
@@ -306,6 +334,18 @@ def check_gitignore(root: Path, results: list[CheckResult]) -> None:
     text = read_text(path)
     for marker in ["AGENTS.md", ".claude/", ".idea/", ".wuyun/", "*.pem", "*.key"]:
         add(results, "PASS" if marker in text else "WARN", f".gitignore protects {marker}")
+    add(results, "PASS" if "\nexamples/\n" not in f"\n{text}\n" else "WARN", ".gitignore does not hide publishable examples/")
+
+
+def check_installer(root: Path, results: list[CheckResult]) -> None:
+    path = root / "install.sh"
+    if not path.exists():
+        return
+    text = read_text(path)
+    expected = ["wuyun", *COMPANION_SKILLS.keys()]
+    for skill in expected:
+        add(results, "PASS" if f'"{skill}"' in text else "FAIL", f"installer includes skill: {skill}")
+    add(results, "PASS" if "--source-dir" in text else "WARN", "installer supports local --source-dir development installs")
 
 
 def check_scripts(skill_dir: Path, results: list[CheckResult], root: Path | None = None) -> None:
@@ -317,10 +357,15 @@ def check_scripts(skill_dir: Path, results: list[CheckResult], root: Path | None
         tmp_path = Path(tmp)
         for script in scripts:
             try:
+                with warnings.catch_warnings():
+                    warnings.simplefilter("error", SyntaxWarning)
+                    compile(read_text(script), str(script), "exec")
                 cfile = tmp_path / f"{script.name}.pyc"
                 py_compile.compile(str(script), cfile=str(cfile), doraise=True)
                 rel = script.relative_to(root) if root and script.is_relative_to(root) else script
                 add(results, "PASS", f"Python compiles: {rel}")
+            except SyntaxWarning as exc:
+                add(results, "FAIL", f"Python syntax warning failed: {script.name}: {exc}")
             except py_compile.PyCompileError as exc:
                 add(results, "FAIL", f"Python compile failed: {script.name}: {exc.msg}")
 
@@ -396,6 +441,7 @@ def main(argv: list[str]) -> int:
     check_reference_integrity(skill_dir, results)
     if mode == "repo":
         check_gitignore(root, results)
+        check_installer(root, results)
     check_scripts(skill_dir, results, root)
     if mode == "repo":
         check_companion_skills(root, results)

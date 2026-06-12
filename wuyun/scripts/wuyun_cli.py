@@ -17,8 +17,12 @@ from pathlib import Path
 SCRIPT_DIR = Path(__file__).resolve().parent
 REPO_ROOT = SCRIPT_DIR.parents[1]
 PASSTHROUGH_COMMANDS = {
+    "cloudflare": ("wuyun", "cloudflare_triage.py"),
     "active-http": ("wuyun-web-api-audit", "active_http_validator.py"),
     "idor-cases": ("wuyun-web-api-audit", "idor_case_generator.py"),
+    "deser-chain": ("wuyun-exploit-assist", "deser_chain_builder.py"),
+    "sqli-payloads": ("wuyun-exploit-assist", "sqli_payload_gen.py"),
+    "ssti-probes": ("wuyun-exploit-assist", "ssti_probe.py"),
     "runtime-hook": ("wuyun-js-reverse", "runtime_hook_capture.py"),
     "ast-transform": ("wuyun-js-deobfuscation", "ast_transform.py"),
     "protocol-replay": ("wuyun-protocol-analysis", "protocol_replay_runner.py"),
@@ -32,6 +36,7 @@ PASSTHROUGH_COMMANDS = {
     "tool-artifact": ("wuyun-recon", "tool_artifact_generator.py"),
     "evasion-lab": ("wuyun-evasion", "canonicalization_lab.py"),
     "origin-plan": ("wuyun-evasion", "origin_exposure_plan.py"),
+    "detection-plan": ("wuyun-evasion", "detection_resilience_plan.py"),
 }
 
 
@@ -87,6 +92,8 @@ def print_playbooks() -> None:
     playbooks = [
         ("code-audit", "Local repository source/config review"),
         ("web-api", "HTTP/API route, authz, request replay, OpenAPI, and business logic review"),
+        ("cloudflare-waf", "Passive Cloudflare/CDN/WAF/challenge classification from headers, bodies, or HAR files"),
+        ("exploit-assist", "Canary-safe PoC/reproducer planning after a vulnerability is identified"),
         ("js-reverse", "Frontend bundle, sourcemap, runtime API, signing logic, and hardcoded secret triage"),
         ("browser-runtime", "Isolated browser runtime capture, HAR analysis, and risk-control attribution"),
         ("js-deobfuscation", "AST deobfuscation, WASM, and client-side signature/protocol logic triage"),
@@ -96,6 +103,7 @@ def print_playbooks() -> None:
         ("ai-audit", "LLM/RAG/agent prompt injection, tool abuse, and AI workflow security"),
         ("recon", "Scoped dorks, CT/subdomain plans, route wordlists, and tool integrations"),
         ("evasion-analysis", "Defensive canonicalization, parser mismatch, and origin exposure planning"),
+        ("chain-mode", "Cross-skill artifact synthesis and safe next-skill chain planning"),
         ("knowledge-base", "Reusable cross-project patterns without secrets or private data"),
         ("cloud", "Cloud exposure, SSRF, metadata, temporary credential, and storage/IAM triage"),
         ("production-safe", "Low-impact online review for fragile or business-sensitive targets"),
@@ -202,7 +210,7 @@ def build_parser() -> argparse.ArgumentParser:
     audit = sub.add_parser("audit", help="run passive local repository audit")
     audit.add_argument("path", nargs="?", default=".", help="repository root")
     audit.add_argument("--json", action="store_true", help="emit JSON")
-    audit.add_argument("--complete-evidence", action="store_true", help="do not compact in-scope evidence")
+    audit.add_argument("--complete-evidence", action="store_true", help="preserve full non-secret context; secrets remain redacted")
     audit.add_argument("--code-only", action="store_true", help="skip docs/examples")
     audit.add_argument("--max-files", type=int, default=0, help="maximum files to inspect")
     audit.add_argument("--max-size", type=int, default=0, help="maximum file size in bytes")
@@ -229,6 +237,10 @@ def build_parser() -> argparse.ArgumentParser:
     har.add_argument("--complete-evidence", action="store_true", help="show full in-scope headers")
     har.set_defaults(func=cmd_browser_har)
 
+    cloudflare = sub.add_parser("cloudflare", help="passively classify Cloudflare/CDN/WAF/challenge artifacts")
+    cloudflare.add_argument("args", nargs=argparse.REMAINDER, help="arguments for cloudflare_triage.py")
+    cloudflare.set_defaults(func=lambda args: run_script("cloudflare_triage.py", list(args.args)))
+
     deobfuscate = sub.add_parser("deobfuscate", help="triage obfuscated JS, WASM, and signing logic")
     deobfuscate.add_argument("path", help="JS/WASM file or directory")
     deobfuscate.add_argument("--json", action="store_true", help="emit JSON")
@@ -247,6 +259,18 @@ def build_parser() -> argparse.ArgumentParser:
     idor_cases = sub.add_parser("idor-cases", help="generate IDOR/BOLA case plans from routes")
     idor_cases.add_argument("args", nargs=argparse.REMAINDER, help="arguments for idor_case_generator.py")
     idor_cases.set_defaults(func=lambda args: cmd_passthrough("wuyun-web-api-audit", "idor_case_generator.py", args))
+
+    deser = sub.add_parser("deser-chain", help="generate canary-safe deserialization PoC plan/payload")
+    deser.add_argument("args", nargs=argparse.REMAINDER, help="arguments for deser_chain_builder.py")
+    deser.set_defaults(func=lambda args: cmd_passthrough("wuyun-exploit-assist", "deser_chain_builder.py", args))
+
+    sqli = sub.add_parser("sqli-payloads", help="generate reviewed SQLi payload and sqlmap plan")
+    sqli.add_argument("args", nargs=argparse.REMAINDER, help="arguments for sqli_payload_gen.py")
+    sqli.set_defaults(func=lambda args: cmd_passthrough("wuyun-exploit-assist", "sqli_payload_gen.py", args))
+
+    ssti = sub.add_parser("ssti-probes", help="generate inert SSTI canary/arithmetic probes")
+    ssti.add_argument("args", nargs=argparse.REMAINDER, help="arguments for ssti_probe.py")
+    ssti.set_defaults(func=lambda args: cmd_passthrough("wuyun-exploit-assist", "ssti_probe.py", args))
 
     runtime_hook = sub.add_parser("runtime-hook", help="generate or run browser runtime observation hooks")
     runtime_hook.add_argument("args", nargs=argparse.REMAINDER, help="arguments for runtime_hook_capture.py")
@@ -300,6 +324,10 @@ def build_parser() -> argparse.ArgumentParser:
     origin.add_argument("args", nargs=argparse.REMAINDER, help="arguments for origin_exposure_plan.py")
     origin.set_defaults(func=lambda args: cmd_passthrough("wuyun-evasion", "origin_exposure_plan.py", args))
 
+    detection = sub.add_parser("detection-plan", help="generate safe detection-resilience test matrix")
+    detection.add_argument("args", nargs=argparse.REMAINDER, help="arguments for detection_resilience_plan.py")
+    detection.set_defaults(func=lambda args: cmd_passthrough("wuyun-evasion", "detection_resilience_plan.py", args))
+
     kb = sub.add_parser("kb", help="manage reusable Wuyun knowledge entries")
     kb.add_argument("args", nargs=argparse.REMAINDER, help="arguments for knowledge_base.py")
     kb.set_defaults(func=lambda args: run_script("knowledge_base.py", list(args.args)))
@@ -307,6 +335,10 @@ def build_parser() -> argparse.ArgumentParser:
     risk = sub.add_parser("risk-report", help="generate CVSS/ATT&CK/ATLAS/PoC helper output")
     risk.add_argument("args", nargs=argparse.REMAINDER, help="arguments for risk_report_helper.py")
     risk.set_defaults(func=lambda args: run_script("risk_report_helper.py", list(args.args)))
+
+    chain = sub.add_parser("chain", help="build safe cross-skill chain plan from local artifacts")
+    chain.add_argument("args", nargs=argparse.REMAINDER, help="arguments for chain_planner.py")
+    chain.set_defaults(func=lambda args: run_script("chain_planner.py", list(args.args)))
 
     report = sub.add_parser("report", help="print a finding/triage/lesson report template")
     report.add_argument("--kind", choices=["finding", "triage", "lesson"], default="finding")
@@ -331,6 +363,11 @@ def main(argv: list[str]) -> int:
         if forwarded[:1] == ["--"]:
             forwarded = forwarded[1:]
         return run_script("risk_report_helper.py", forwarded)
+    if argv and argv[0] == "chain":
+        forwarded = argv[1:]
+        if forwarded[:1] == ["--"]:
+            forwarded = forwarded[1:]
+        return run_script("chain_planner.py", forwarded)
     if argv and argv[0] == "kb":
         forwarded = argv[1:]
         if forwarded[:1] == ["--"]:
