@@ -180,8 +180,10 @@ COMPANION_SKILLS: dict[str, list[str]] = {
         "agents/openai.yaml",
         "references/redteam-workflow.md",
         "references/attack-path-modeling.md",
+        "references/purple-team-detection.md",
         "scripts/redteam_plan.py",
         "scripts/attack_path_matrix.py",
+        "scripts/purple_team_mapper.py",
     ],
 }
 

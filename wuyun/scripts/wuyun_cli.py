@@ -39,6 +39,7 @@ PASSTHROUGH_COMMANDS = {
     "detection-plan": ("wuyun-evasion", "detection_resilience_plan.py"),
     "redteam-plan": ("wuyun-redteam-ops", "redteam_plan.py"),
     "attack-matrix": ("wuyun-redteam-ops", "attack_path_matrix.py"),
+    "purple-map": ("wuyun-redteam-ops", "purple_team_mapper.py"),
 }
 
 
@@ -105,7 +106,7 @@ def print_playbooks() -> None:
         ("ai-audit", "LLM/RAG/agent prompt injection, tool abuse, and AI workflow security"),
         ("recon", "Scoped dorks, CT/subdomain plans, route wordlists, and tool integrations"),
         ("evasion-analysis", "Defensive canonicalization, parser mismatch, and origin exposure planning"),
-        ("redteam-ops", "Authorized red-team/purple-team engagement planning and attack-path matrixing"),
+        ("redteam-ops", "Authorized red-team/purple-team planning, attack-path matrixing, detection/remediation mapping"),
         ("chain-mode", "Cross-skill artifact synthesis and safe next-skill chain planning"),
         ("regression-eval", "Local-only helper regression checks for packaging, redaction, Cloudflare triage, and routing"),
         ("knowledge-base", "Reusable cross-project patterns without secrets or private data"),
@@ -343,6 +344,10 @@ def build_parser() -> argparse.ArgumentParser:
     attack_matrix = sub.add_parser("attack-matrix", help="build attack-path matrix from local artifacts")
     attack_matrix.add_argument("args", nargs=argparse.REMAINDER, help="arguments for attack_path_matrix.py")
     attack_matrix.set_defaults(func=lambda args: cmd_passthrough("wuyun-redteam-ops", "attack_path_matrix.py", args))
+
+    purple_map = sub.add_parser("purple-map", help="map red-team artifacts to purple-team detection/remediation workstreams")
+    purple_map.add_argument("args", nargs=argparse.REMAINDER, help="arguments for purple_team_mapper.py")
+    purple_map.set_defaults(func=lambda args: cmd_passthrough("wuyun-redteam-ops", "purple_team_mapper.py", args))
 
     kb = sub.add_parser("kb", help="manage reusable Wuyun knowledge entries")
     kb.add_argument("args", nargs=argparse.REMAINDER, help="arguments for knowledge_base.py")

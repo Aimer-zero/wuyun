@@ -29,6 +29,7 @@ Use this companion with `$wuyun` when the task is broader than one vulnerability
    - Read `references/attack-path-modeling.md` when prioritizing multiple paths.
    - Use `scripts/redteam_plan.py` for a deterministic plan skeleton.
    - Use `scripts/attack_path_matrix.py` on local Wuyun artifacts to cluster signals into tactics, next skills, and safe checks.
+   - Use `scripts/purple_team_mapper.py` after a plan or matrix exists to turn paths into telemetry, safe emulation, remediation tests, and retest workstreams.
 
 3. **Route to specialist skills**
    - Web/API → `$wuyun-web-api-audit`
@@ -52,15 +53,18 @@ Use this companion with `$wuyun` when the task is broader than one vulnerability
 
 - `scripts/redteam_plan.py`: creates a local-only engagement plan with guardrails, phases, attack paths, handoffs, and evidence checkpoints.
 - `scripts/attack_path_matrix.py`: clusters local findings/HAR/JSON/text artifacts into ATT&CK-style tactics, Wuyun skill handoffs, safe validation steps, and blocked actions.
+- `scripts/purple_team_mapper.py`: converts local plans/matrices/artifacts into purple-team telemetry, detection objectives, safe emulation, remediation tests, and evidence ledger fields.
 
 Examples:
 
 ```bash
 python3 wuyun-redteam-ops/scripts/redteam_plan.py --profile web --profile cloud --asset api.example.invalid --objective "assess tenant isolation" --json
 python3 wuyun-redteam-ops/scripts/attack_path_matrix.py recon.json js-surface.json audit.json --profile web --json
+python3 wuyun-redteam-ops/scripts/purple_team_mapper.py attack-matrix.json --owner security --json
 ```
 
 ## References
 
 - `references/redteam-workflow.md`: engagement framing, rules of engagement, evidence ledger, phase gates, and reporting loop.
 - `references/attack-path-modeling.md`: profile-to-tactic mapping, prioritization, confidence model, safe validation examples, and handoff schema.
+- `references/purple-team-detection.md`: detection/remediation mapping workflow, telemetry categories, safe emulation defaults, and blocked actions.

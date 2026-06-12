@@ -449,8 +449,9 @@ def eval_jwt_audit(root: Path, skills_parent: Path, tmp: Path) -> EvalCase:
 def eval_redteam_ops(root: Path, skills_parent: Path, tmp: Path) -> EvalCase:
     plan_script = skills_parent / "wuyun-redteam-ops" / "scripts" / "redteam_plan.py"
     matrix_script = skills_parent / "wuyun-redteam-ops" / "scripts" / "attack_path_matrix.py"
-    if not plan_script.exists() or not matrix_script.exists():
-        return record("redteam_ops", False, f"missing red-team helper: {plan_script} / {matrix_script}")
+    purple_script = skills_parent / "wuyun-redteam-ops" / "scripts" / "purple_team_mapper.py"
+    if not plan_script.exists() or not matrix_script.exists() or not purple_script.exists():
+        return record("redteam_ops", False, f"missing red-team helper: {plan_script} / {matrix_script} / {purple_script}")
 
     plan_proc = run_cmd(
         [
@@ -495,18 +496,32 @@ def eval_redteam_ops(root: Path, skills_parent: Path, tmp: Path) -> EvalCase:
     except json.JSONDecodeError as exc:
         return record("redteam_ops", False, f"invalid matrix JSON: {exc}")
 
-    text = json.dumps({"plan": plan, "matrix": matrix}, ensure_ascii=False)
+    matrix_path = tmp / "redteam-matrix.json"
+    matrix_path.write_text(json.dumps(matrix, ensure_ascii=False), encoding="utf-8")
+    purple_proc = run_cmd([sys.executable, str(purple_script), str(matrix_path), "--owner", "security", "--json"], root)
+    if purple_proc.returncode != 0:
+        return record("redteam_ops", False, purple_proc.stderr.strip() or f"purple exit {purple_proc.returncode}")
+    try:
+        purple = json.loads(purple_proc.stdout)
+    except json.JSONDecodeError as exc:
+        return record("redteam_ops", False, f"invalid purple map JSON: {exc}")
+
+    text = json.dumps({"plan": plan, "matrix": matrix, "purple": purple}, ensure_ascii=False)
     condition = all(
         [
             plan.get("status") == "plan-only",
             len(plan.get("attack_paths", [])) >= 4,
             "$wuyun-web-api-audit" in text,
             "$wuyun-cloud-vuln" in text,
+            purple.get("status") == "mapped",
+            purple.get("summary", {}).get("workstream_count", 0) >= 2,
+            "telemetry_sources" in text,
+            "remediation_tests" in text,
             "no malware" in text.lower(),
             any(entry.get("path_id") == "web-api-authz" for entry in matrix.get("entries", [])),
         ]
     )
-    return record("redteam_ops", condition, "red-team plan and attack-path matrix route safely to specialist skills")
+    return record("redteam_ops", condition, "red-team plan, attack matrix, and purple-team coverage map route safely")
 
 
 def eval_helper_help(root: Path, skill: Path, skills_parent: Path) -> EvalCase:
