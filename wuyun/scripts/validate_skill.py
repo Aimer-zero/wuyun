@@ -30,6 +30,8 @@ REQUIRED_ROOT_FILES = [
     "eval/fixtures/passive_repo/sample_app.py",
     "eval/fixtures/cloudflare/headers.txt",
     "eval/fixtures/cloudflare/body.html",
+    "eval/fixtures/openapi/openapi.json",
+    "eval/fixtures/js/app.js",
 ]
 
 REQUIRED_SKILL_FILES = [

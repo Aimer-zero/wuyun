@@ -86,6 +86,8 @@ python3 wuyun/scripts/quality_gate.py . --skip-preflight
 bash -n install.sh
 ```
 
+`run_eval.py` 是纯离线回归套件，会覆盖核心 helper、常用 companion helper、敏感值脱敏、Cloudflare 归因和 CLI 路由。
+
 常用 CLI：
 
 ```bash
@@ -214,6 +216,8 @@ python3 wuyun/scripts/run_eval.py .
 python3 wuyun/scripts/quality_gate.py . --skip-preflight
 bash -n install.sh
 ```
+
+`run_eval.py` is a local-only regression suite covering core helpers, common companion helpers, redaction guarantees, Cloudflare attribution, and CLI routing.
 
 Useful CLI commands:
 

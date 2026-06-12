@@ -112,7 +112,7 @@ Use deterministic helpers when available; they produce leads, not final findings
 - `scripts/knowledge_base.py`: project-local or explicit cross-project reusable pattern memory without secrets.
 - `scripts/risk_report_helper.py`: CVSS 3.1 estimate, ATT&CK/ATLAS mapping, and minimal PoC template helper.
 - `scripts/validate_skill.py`: validates packaging, metadata, references, examples, script compilation, stale names, and private-content leaks.
-- `scripts/run_eval.py`: local-only regression eval for core helper workflows, redaction guarantees, Cloudflare triage, CLI routing, and chain planning.
+- `scripts/run_eval.py`: local-only regression eval for core and companion helper workflows, redaction guarantees, Cloudflare triage, CLI routing, and chain planning.
 - `scripts/quality_gate.py`: runs publish-oriented validation and a bounded self-audit.
 
 Typical code-audit start:

@@ -9,6 +9,7 @@ executes fixture application code.
 from __future__ import annotations
 
 import argparse
+import base64
 import json
 import subprocess
 import sys
@@ -109,6 +110,103 @@ def ensure_chain_artifact(root: Path, tmp: Path) -> Path:
         ),
         encoding="utf-8",
     )
+    return path
+
+
+def ensure_openapi_fixture(root: Path, tmp: Path) -> Path:
+    existing = root / "eval" / "fixtures" / "openapi" / "openapi.json"
+    if existing.exists():
+        return existing
+    fixture = tmp / "openapi"
+    fixture.mkdir(parents=True, exist_ok=True)
+    path = fixture / "openapi.json"
+    path.write_text(
+        json.dumps(
+            {
+                "openapi": "3.0.3",
+                "info": {"title": "Wuyun Eval API", "version": "1.0.0"},
+                "security": [{"bearerAuth": []}],
+                "paths": {
+                    "/api/users/{userId}": {
+                        "get": {
+                            "parameters": [
+                                {"name": "userId", "in": "path", "required": True, "schema": {"type": "string"}}
+                            ],
+                            "responses": {"200": {"description": "OK"}},
+                        }
+                    },
+                    "/api/admin/roles": {
+                        "post": {
+                            "security": [],
+                            "requestBody": {
+                                "content": {
+                                    "application/json": {
+                                        "schema": {
+                                            "type": "object",
+                                            "properties": {
+                                                "tenantId": {"type": "string"},
+                                                "role": {"type": "string"},
+                                                "isAdmin": {"type": "boolean"},
+                                            },
+                                        }
+                                    }
+                                }
+                            },
+                            "responses": {"204": {"description": "No Content"}},
+                        }
+                    },
+                },
+            },
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+    return path
+
+
+def ensure_js_fixture(root: Path, tmp: Path) -> Path:
+    existing = root / "eval" / "fixtures" / "js" / "app.js"
+    if existing.exists():
+        return existing
+    fixture = tmp / "js"
+    fixture.mkdir(parents=True, exist_ok=True)
+    path = fixture / "app.js"
+    path.write_text(
+        "\n".join(
+            [
+                "// Static-only fixture for Wuyun helper regression. Never execute this file.",
+                'const socketPath = "/socket/chat";',
+                'const apiPath = "/api/admin/roles";',
+                "const graphQuery = `query Viewer($id: ID!) { viewer(id: $id) { id } }`;",
+                "async function updateRole(userId, role, csrfToken) {",
+                "  const timestamp = String(Date.now());",
+                '  const nonce = "eval-nonce";',
+                '  const signature = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`${timestamp}:${nonce}:${role}`));',
+                '  const tokenValue = localStorage.getItem("accessToken");',
+                "  return fetch(apiPath, {",
+                '    method: "POST",',
+                '    headers: { Authorization: `Bearer ${tokenValue}`, "X-CSRF": csrfToken, "X-Signature": String(signature) },',
+                "    body: JSON.stringify({ userId, role }),",
+                "  });",
+                "}",
+                "const channel = new WebSocket(`wss://app.example.invalid${socketPath}`);",
+                'channel.addEventListener("message", event => console.debug("socket", event.data));',
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    return path
+
+
+def build_jwt_fixture(tmp: Path) -> Path:
+    def b64url(value: dict) -> str:
+        raw = json.dumps(value, separators=(",", ":")).encode("utf-8")
+        return base64.urlsafe_b64encode(raw).decode("ascii").rstrip("=")
+
+    token = f"{b64url({'alg': 'none', 'kid': '../keys/demo'})}.{b64url({'role': 'tester'})}."
+    path = tmp / "jwt.txt"
+    path.write_text(token + "\n", encoding="utf-8")
     return path
 
 
@@ -234,6 +332,105 @@ def eval_chain_planner(root: Path, skill: Path, tmp: Path) -> EvalCase:
     return record("chain_planner", condition, "GraphQL artifact routes to protocol companion skill")
 
 
+def eval_openapi_analyzer(root: Path, skills_parent: Path, tmp: Path) -> EvalCase:
+    script = skills_parent / "wuyun-web-api-audit" / "scripts" / "analyze_openapi.py"
+    if not script.exists():
+        return record("analyze_openapi", False, f"missing companion script: {script}")
+    fixture = ensure_openapi_fixture(root, tmp)
+    proc = run_cmd([sys.executable, str(script), "--json", str(fixture)], root)
+    if proc.returncode != 0:
+        return record("analyze_openapi", False, proc.stderr.strip() or f"exit {proc.returncode}")
+    try:
+        data = json.loads(proc.stdout)
+    except json.JSONDecodeError as exc:
+        return record("analyze_openapi", False, f"invalid JSON: {exc}")
+    text = json.dumps(data, ensure_ascii=False)
+    condition = all(
+        [
+            "/api/admin/roles" in text,
+            "explicitly unauthenticated operation" in text,
+            "sensitive parameter/schema field" in text,
+            "tenantId" in text,
+        ]
+    )
+    return record("analyze_openapi", condition, "OpenAPI auth, sensitive path, and field leads detected")
+
+
+def eval_js_surface(root: Path, skills_parent: Path, tmp: Path) -> EvalCase:
+    script = skills_parent / "wuyun-js-reverse" / "scripts" / "extract_js_surface.py"
+    if not script.exists():
+        return record("extract_js_surface", False, f"missing companion script: {script}")
+    fixture = ensure_js_fixture(root, tmp)
+    proc = run_cmd([sys.executable, str(script), "--json", str(fixture)], root)
+    if proc.returncode != 0:
+        return record("extract_js_surface", False, proc.stderr.strip() or f"exit {proc.returncode}")
+    try:
+        data = json.loads(proc.stdout)
+    except json.JSONDecodeError as exc:
+        return record("extract_js_surface", False, f"invalid JSON: {exc}")
+    summary = data.get("summary", {})
+    text = json.dumps(data, ensure_ascii=False)
+    condition = (
+        summary.get("endpoint", 0) >= 1
+        and summary.get("request", 0) >= 1
+        and summary.get("auth", 0) >= 1
+        and summary.get("crypto", 0) >= 1
+        and "/api/admin/roles" in text
+    )
+    return record("extract_js_surface", condition, "JS endpoint, request, auth, and crypto signals detected")
+
+
+def eval_route_wordlist(root: Path, skills_parent: Path, tmp: Path) -> EvalCase:
+    script = skills_parent / "wuyun-recon" / "scripts" / "route_wordlist.py"
+    if not script.exists():
+        return record("route_wordlist", False, f"missing companion script: {script}")
+    fixture = ensure_js_fixture(root, tmp)
+    proc = run_cmd([sys.executable, str(script), "--json", str(fixture.parent)], root)
+    if proc.returncode != 0:
+        return record("route_wordlist", False, proc.stderr.strip() or f"exit {proc.returncode}")
+    try:
+        data = json.loads(proc.stdout)
+    except json.JSONDecodeError as exc:
+        return record("route_wordlist", False, f"invalid JSON: {exc}")
+    words = set(data.get("wordlist", []))
+    condition = {"api/admin/roles", "socket/chat"}.issubset(words)
+    return record("route_wordlist", condition, "Route wordlist extracts API and socket paths from JS fixture")
+
+
+def eval_protocol_inventory(root: Path, skills_parent: Path, tmp: Path) -> EvalCase:
+    script = skills_parent / "wuyun-protocol-analysis" / "scripts" / "protocol_inventory.py"
+    if not script.exists():
+        return record("protocol_inventory", False, f"missing companion script: {script}")
+    fixture = ensure_js_fixture(root, tmp)
+    proc = run_cmd([sys.executable, str(script), "--json", str(fixture)], root)
+    if proc.returncode != 0:
+        return record("protocol_inventory", False, proc.stderr.strip() or f"exit {proc.returncode}")
+    try:
+        data = json.loads(proc.stdout)
+    except json.JSONDecodeError as exc:
+        return record("protocol_inventory", False, f"invalid JSON: {exc}")
+    summary = data.get("summary", {})
+    condition = summary.get("websocket", 0) >= 1 and summary.get("graphql", 0) >= 1
+    return record("protocol_inventory", condition, "Protocol inventory detects WebSocket and GraphQL signals")
+
+
+def eval_jwt_audit(root: Path, skills_parent: Path, tmp: Path) -> EvalCase:
+    script = skills_parent / "wuyun-auth-audit" / "scripts" / "jwt_audit.py"
+    if not script.exists():
+        return record("jwt_audit", False, f"missing companion script: {script}")
+    fixture = build_jwt_fixture(tmp)
+    proc = run_cmd([sys.executable, str(script), "--json", str(fixture)], root)
+    if proc.returncode != 0:
+        return record("jwt_audit", False, proc.stderr.strip() or f"exit {proc.returncode}")
+    try:
+        data = json.loads(proc.stdout)
+    except json.JSONDecodeError as exc:
+        return record("jwt_audit", False, f"invalid JSON: {exc}")
+    risks = set(data.get("risks", []))
+    condition = {"alg-none-or-missing", "kid-path-or-injection-shape", "missing-exp"}.issubset(risks)
+    return record("jwt_audit", condition, "JWT structural risks detected without signature brute force")
+
+
 def print_summary(cases: list[EvalCase], root: Path) -> int:
     passed = sum(1 for case in cases if case.passed)
     failed = len(cases) - passed
@@ -270,6 +467,11 @@ def main(argv: list[str]) -> int:
             eval_cloud_tokens(root, skills_parent, tmp),
             eval_cli_playbooks(root, skill),
             eval_chain_planner(root, skill, tmp),
+            eval_openapi_analyzer(root, skills_parent, tmp),
+            eval_js_surface(root, skills_parent, tmp),
+            eval_route_wordlist(root, skills_parent, tmp),
+            eval_protocol_inventory(root, skills_parent, tmp),
+            eval_jwt_audit(root, skills_parent, tmp),
         ]
     return print_summary(cases, root)
 
