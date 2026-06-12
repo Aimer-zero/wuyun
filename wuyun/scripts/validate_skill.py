@@ -333,9 +333,9 @@ def check_gitignore(root: Path, results: list[CheckResult]) -> None:
     if not path.exists():
         return
     text = read_text(path)
-    for marker in ["AGENTS.md", ".claude/", ".idea/", ".wuyun/", "eval/fixtures/", "*.pem", "*.key"]:
+    for marker in ["AGENTS.md", ".claude/", ".idea/", ".wuyun/", "eval/fixtures/", "examples/", "*.pem", "*.key"]:
         add(results, "PASS" if marker in text else "WARN", f".gitignore protects {marker}")
-    add(results, "PASS" if "\nexamples/\n" not in f"\n{text}\n" else "WARN", ".gitignore does not hide publishable examples/")
+    add(results, "PASS" if "\nexamples/\n" in f"\n{text}\n" else "WARN", ".gitignore keeps examples local-only")
 
 
 def check_installer(root: Path, results: list[CheckResult]) -> None:

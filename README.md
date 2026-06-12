@@ -58,7 +58,7 @@ curl -fsSL https://raw.githubusercontent.com/Aimer-zero/wuyun/main/install.sh | 
 使用 $wuyun-exploit-assist，把已确认的 SSTI/SQLi/反序列化线索整理成 canary-safe 最小 PoC 计划；不要生成 webshell、反弹 shell、数据导出或 WAF 绕过 payload。
 ```
 
-更多可复制示例见 `examples/`。
+示例提示词保留在本文档；本地 `examples/` 目录可自建但不会提交到仓库。
 
 ## 模块
 
@@ -189,7 +189,7 @@ Use $wuyun, chain mode, to combine recon.json, js-surface.json, and har-analysis
 Use $wuyun-exploit-assist to turn a confirmed SSTI/SQLi/deserialization lead into a canary-safe minimal PoC plan; do not generate webshells, reverse shells, data-dumping, or WAF-bypass payloads.
 ```
 
-More examples live in `examples/`.
+Reusable prompt examples are kept in this README; local `examples/` directories may be created but are not committed.
 
 ## Modules
 

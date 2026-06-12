@@ -55,9 +55,7 @@ def record(name: str, condition: bool, detail: str) -> EvalCase:
 
 
 def ensure_fixture_dir(root: Path, tmp: Path) -> Path:
-    fixture = root / "eval" / "fixtures" / "passive_repo"
-    if fixture.exists():
-        return fixture
+    _ = root
     fixture = tmp / "passive_repo"
     fixture.mkdir(parents=True, exist_ok=True)
     (fixture / "sample_app.py").write_text(
@@ -78,11 +76,7 @@ def ensure_fixture_dir(root: Path, tmp: Path) -> Path:
 
 
 def ensure_cloudflare_files(root: Path, tmp: Path) -> tuple[Path, Path]:
-    fixture = root / "eval" / "fixtures" / "cloudflare"
-    headers = fixture / "headers.txt"
-    body = fixture / "body.html"
-    if headers.exists() and body.exists():
-        return headers, body
+    _ = root
     fixture = tmp / "cloudflare"
     fixture.mkdir(parents=True, exist_ok=True)
     headers = fixture / "headers.txt"
@@ -96,9 +90,7 @@ def ensure_cloudflare_files(root: Path, tmp: Path) -> tuple[Path, Path]:
 
 
 def ensure_chain_artifact(root: Path, tmp: Path) -> Path:
-    existing = root / "examples" / "captures" / "graphql-replay-case.json"
-    if existing.exists():
-        return existing
+    _ = root
     path = tmp / "graphql-replay-case.json"
     path.write_text(
         json.dumps(
@@ -114,9 +106,7 @@ def ensure_chain_artifact(root: Path, tmp: Path) -> Path:
 
 
 def ensure_openapi_fixture(root: Path, tmp: Path) -> Path:
-    existing = root / "eval" / "fixtures" / "openapi" / "openapi.json"
-    if existing.exists():
-        return existing
+    _ = root
     fixture = tmp / "openapi"
     fixture.mkdir(parents=True, exist_ok=True)
     path = fixture / "openapi.json"
@@ -165,9 +155,7 @@ def ensure_openapi_fixture(root: Path, tmp: Path) -> Path:
 
 
 def ensure_js_fixture(root: Path, tmp: Path) -> Path:
-    existing = root / "eval" / "fixtures" / "js" / "app.js"
-    if existing.exists():
-        return existing
+    _ = root
     fixture = tmp / "js"
     fixture.mkdir(parents=True, exist_ok=True)
     path = fixture / "app.js"
