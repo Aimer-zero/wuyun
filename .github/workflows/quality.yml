@@ -24,6 +24,9 @@ jobs:
       - name: Run package validator
         run: python3 wuyun/scripts/validate_skill.py .
 
+      - name: Run offline regression suite
+        run: python3 wuyun/scripts/run_eval.py .
+
       - name: Run publish quality gate
         run: python3 wuyun/scripts/quality_gate.py . --skip-preflight
 

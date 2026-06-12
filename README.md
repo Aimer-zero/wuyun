@@ -81,6 +81,7 @@ wuyun-evasion/            # 防御性检测健壮性：规范化差异、parser 
 
 ```bash
 python3 wuyun/scripts/validate_skill.py .
+python3 wuyun/scripts/run_eval.py .
 python3 wuyun/scripts/quality_gate.py . --skip-preflight
 bash -n install.sh
 ```
@@ -89,6 +90,7 @@ bash -n install.sh
 
 ```bash
 python3 wuyun/scripts/wuyun_cli.py playbooks
+python3 wuyun/scripts/wuyun_cli.py eval .
 python3 wuyun/scripts/wuyun_cli.py audit /path/to/repo --code-only
 python3 wuyun/scripts/wuyun_cli.py js-reverse /path/to/dist --json
 python3 wuyun/scripts/wuyun_cli.py chain recon.json js-surface.json har-analysis.json
@@ -208,6 +210,7 @@ wuyun-evasion/            # Defensive detection resilience: canonicalization, pa
 
 ```bash
 python3 wuyun/scripts/validate_skill.py .
+python3 wuyun/scripts/run_eval.py .
 python3 wuyun/scripts/quality_gate.py . --skip-preflight
 bash -n install.sh
 ```
@@ -216,6 +219,7 @@ Useful CLI commands:
 
 ```bash
 python3 wuyun/scripts/wuyun_cli.py playbooks
+python3 wuyun/scripts/wuyun_cli.py eval .
 python3 wuyun/scripts/wuyun_cli.py audit /path/to/repo --code-only
 python3 wuyun/scripts/wuyun_cli.py js-reverse /path/to/dist --json
 python3 wuyun/scripts/wuyun_cli.py chain recon.json js-surface.json har-analysis.json

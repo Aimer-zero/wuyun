@@ -107,11 +107,12 @@ Use deterministic helpers when available; they produce leads, not final findings
 - `scripts/cloudflare_triage.py`: passive Cloudflare/CDN/WAF/challenge triage from local headers, bodies, or HAR files; does not contact targets.
 - `scripts/passive_repo_audit.py <repo>`: local-only route/config/risky-pattern triage with reduced documentation false positives.
 - `scripts/init_memory.py <repo>`: creates project-local `.wuyun/` memory/evidence skeleton when the host has no managed memory.
-- `scripts/wuyun_cli.py`: unified local entry point for doctor/init/audit/js-reverse/browser-env/browser-har/deobfuscate/protocol/exploit-assist/report/playbook helpers.
+- `scripts/wuyun_cli.py`: unified local entry point for doctor/init/eval/audit/js-reverse/browser-env/browser-har/deobfuscate/protocol/exploit-assist/report/playbook helpers.
 - `scripts/chain_planner.py`: local-only cross-skill chain planner that turns recon/audit/runtime artifacts into safe next-step recommendations and chain hypotheses.
 - `scripts/knowledge_base.py`: project-local or explicit cross-project reusable pattern memory without secrets.
 - `scripts/risk_report_helper.py`: CVSS 3.1 estimate, ATT&CK/ATLAS mapping, and minimal PoC template helper.
 - `scripts/validate_skill.py`: validates packaging, metadata, references, examples, script compilation, stale names, and private-content leaks.
+- `scripts/run_eval.py`: local-only regression eval for core helper workflows, redaction guarantees, Cloudflare triage, CLI routing, and chain planning.
 - `scripts/quality_gate.py`: runs publish-oriented validation and a bounded self-audit.
 
 Typical code-audit start:

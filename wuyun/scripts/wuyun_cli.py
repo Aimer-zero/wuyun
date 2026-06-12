@@ -104,6 +104,7 @@ def print_playbooks() -> None:
         ("recon", "Scoped dorks, CT/subdomain plans, route wordlists, and tool integrations"),
         ("evasion-analysis", "Defensive canonicalization, parser mismatch, and origin exposure planning"),
         ("chain-mode", "Cross-skill artifact synthesis and safe next-skill chain planning"),
+        ("regression-eval", "Local-only helper regression checks for packaging, redaction, Cloudflare triage, and routing"),
         ("knowledge-base", "Reusable cross-project patterns without secrets or private data"),
         ("cloud", "Cloud exposure, SSRF, metadata, temporary credential, and storage/IAM triage"),
         ("production-safe", "Low-impact online review for fragile or business-sensitive targets"),
@@ -206,6 +207,10 @@ def build_parser() -> argparse.ArgumentParser:
     init.add_argument("path", nargs="?", default=".", help="project root")
     init.add_argument("--force", action="store_true", help="overwrite existing skeleton files")
     init.set_defaults(func=lambda args: run_script("init_memory.py", [str(Path(args.path).resolve())] + (["--force"] if args.force else [])))
+
+    regression = sub.add_parser("eval", help="run local-only Wuyun regression evals")
+    regression.add_argument("path", nargs="?", default=str(REPO_ROOT), help="repository root or installed wuyun skill directory")
+    regression.set_defaults(func=lambda args: run_script("run_eval.py", [str(Path(args.path).resolve())]))
 
     audit = sub.add_parser("audit", help="run passive local repository audit")
     audit.add_argument("path", nargs="?", default=".", help="repository root")

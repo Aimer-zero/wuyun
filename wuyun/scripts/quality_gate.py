@@ -46,10 +46,12 @@ def main(argv: list[str]) -> int:
 
     checks = [
         ("Package validation", [sys.executable, str(scripts / "validate_skill.py"), str(root)]),
+        ("Offline regression eval", [sys.executable, str(scripts / "run_eval.py"), str(root)]),
         ("Installer syntax", ["bash", "-n", str(root / "install.sh")]),
         ("Bounded self passive audit", [
             sys.executable, str(scripts / "passive_repo_audit.py"), str(root),
             "--max-files", "500", "--code-only",
+            "--exclude", "eval/fixtures",
             "--exclude", "wuyun/scripts",
             "--exclude", "wuyun-web-api-audit/scripts",
             "--exclude", "wuyun-exploit-assist/scripts",

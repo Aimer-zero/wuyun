@@ -27,6 +27,9 @@ REQUIRED_ROOT_FILES = [
     "README.md",
     "LICENSE",
     "install.sh",
+    "eval/fixtures/passive_repo/sample_app.py",
+    "eval/fixtures/cloudflare/headers.txt",
+    "eval/fixtures/cloudflare/body.html",
 ]
 
 REQUIRED_SKILL_FILES = [
@@ -51,6 +54,7 @@ REQUIRED_SKILL_FILES = [
     "scripts/wuyun_cli.py",
     "scripts/bootstrap_tools.py",
     "scripts/quality_gate.py",
+    "scripts/run_eval.py",
     "scripts/validate_skill.py",
     "scripts/knowledge_base.py",
     "scripts/risk_report_helper.py",
