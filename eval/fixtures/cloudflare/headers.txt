@@ -1,5 +1,0 @@
-HTTP/2 403
-server: cloudflare
-cf-ray: 7abc1234def56789-SJC
-cf-mitigated: challenge
-content-type: text/html; charset=UTF-8

@@ -27,11 +27,6 @@ REQUIRED_ROOT_FILES = [
     "README.md",
     "LICENSE",
     "install.sh",
-    "eval/fixtures/passive_repo/sample_app.py",
-    "eval/fixtures/cloudflare/headers.txt",
-    "eval/fixtures/cloudflare/body.html",
-    "eval/fixtures/openapi/openapi.json",
-    "eval/fixtures/js/app.js",
 ]
 
 REQUIRED_SKILL_FILES = [
@@ -338,7 +333,7 @@ def check_gitignore(root: Path, results: list[CheckResult]) -> None:
     if not path.exists():
         return
     text = read_text(path)
-    for marker in ["AGENTS.md", ".claude/", ".idea/", ".wuyun/", "*.pem", "*.key"]:
+    for marker in ["AGENTS.md", ".claude/", ".idea/", ".wuyun/", "eval/fixtures/", "*.pem", "*.key"]:
         add(results, "PASS" if marker in text else "WARN", f".gitignore protects {marker}")
     add(results, "PASS" if "\nexamples/\n" not in f"\n{text}\n" else "WARN", ".gitignore does not hide publishable examples/")
 
