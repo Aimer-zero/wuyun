@@ -1,0 +1,23 @@
+{
+  "name": "wuyun",
+  "version": "0.3.0",
+  "schema_version": "1.0",
+  "frameworks": ["OWASP", "OWASP API Top 10", "MITRE ATT&CK", "MITRE ATLAS", "NIST CSF", "D3FEND"],
+  "skills": [
+    {"name": "wuyun", "domains": ["router", "research-workflow", "reporting"], "tools": ["rg", "python"], "risk": "low-impact-default", "outputs": ["markdown", "json", "sarif"]},
+    {"name": "wuyun-web-api-audit", "domains": ["web", "api", "authorization", "injection"], "maps_to": {"owasp_api_top10": ["API1:BOLA", "API5:BFLA", "API7:SSRF"]}, "tools": ["burp", "curl", "sqlmap", "ffuf"], "risk": "active-testing-capable"},
+    {"name": "wuyun-exploit-assist", "domains": ["poc", "reproducer", "canary-safe-validation"], "tools": ["python", "sqlmap"], "risk": "requires-confirmed-lead"},
+    {"name": "wuyun-cloud-vuln", "domains": ["cloud", "ssrf", "metadata", "iam"], "tools": ["curl", "jq"], "risk": "owner-assisted-impact"},
+    {"name": "wuyun-js-reverse", "domains": ["frontend", "javascript", "api-discovery", "runtime-hooks"], "tools": ["browser", "jshook", "node"], "risk": "passive-first"},
+    {"name": "wuyun-js-deobfuscation", "domains": ["javascript", "ast", "wasm", "signature-protocol"], "tools": ["node", "python"], "risk": "local-only"},
+    {"name": "wuyun-browser-runtime", "domains": ["browser", "har", "waf", "runtime-evidence"], "tools": ["browser", "chrome", "jshook"], "risk": "owner-assisted-runtime"},
+    {"name": "wuyun-protocol-analysis", "domains": ["websocket", "graphql", "rpc", "streaming"], "tools": ["burp", "browser", "python"], "risk": "passive-replay-aware"},
+    {"name": "wuyun-auth-audit", "domains": ["jwt", "oauth", "saml", "session", "tenant"], "tools": ["python", "burp"], "risk": "authz-sensitive"},
+    {"name": "wuyun-ai-audit", "domains": ["llm", "rag", "agent", "prompt-injection"], "maps_to": {"mitre_atlas": ["prompt-injection", "tool-abuse"]}, "tools": ["python"], "risk": "canary-safe"},
+    {"name": "wuyun-recon", "domains": ["recon", "wordlist", "tool-artifacts"], "tools": ["ffuf", "nuclei", "subfinder"], "risk": "scoped-dry-run"},
+    {"name": "wuyun-evasion", "domains": ["canonicalization", "parser-mismatch", "waf-attribution"], "tools": ["python"], "risk": "defensive-lab-only"},
+    {"name": "wuyun-redteam-ops", "domains": ["red-team", "purple-team", "attack-path", "detection"], "maps_to": {"mitre_attack": ["enterprise-tactics"], "d3fend": ["detection", "hardening"]}, "tools": ["python"], "risk": "planning-only-by-default"},
+    {"name": "wuyun-skill-security-audit", "domains": ["agent-security", "skill-security", "mcp-security", "prompt-supply-chain"], "maps_to": {"nist_csf": ["supply-chain-risk", "governance"], "mitre_atlas": ["agent-tool-abuse", "prompt-injection"]}, "tools": ["python"], "risk": "local-passive"},
+    {"name": "wuyun-supply-chain-audit", "domains": ["supply-chain", "ci-cd", "dependency", "secret-scanning", "language-packs"], "maps_to": {"owasp": ["software-supply-chain"], "nist_csf": ["supply-chain-risk"]}, "tools": ["semgrep", "gitleaks", "trivy", "pip-audit", "npm-audit"], "risk": "local-passive"}
+  ]
+}

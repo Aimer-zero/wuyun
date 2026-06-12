@@ -72,6 +72,10 @@ Companion loading rule: prefer the installed skill by name, such as `$wuyun-auth
   Load `$wuyun-evasion`; sibling fallback: `../wuyun-evasion/SKILL.md`.
 - **Red-team operations signals** (`red team`, `purple team`, adversary emulation, attack path, ROE, operation plan, engagement plan, detection workstream):
   Load `$wuyun-redteam-ops`; sibling fallback: `../wuyun-redteam-ops/SKILL.md`. Use for planning, path modeling, safe validation, detection, remediation, and cross-skill handoffs; do not turn it into malware, persistence, credential theft, destructive actions, or stealth/WAF-bypass payload generation.
+- **Skill/MCP/plugin security signals** (`skill security`, `MCP audit`, third-party skill, plugin manifest, AGENTS.md, CLAUDE.md, agent extension, tool permission, prompt supply chain):
+  Load `$wuyun-skill-security-audit`; sibling fallback: `../wuyun-skill-security-audit/SKILL.md`. Use before installing or trusting unknown agent extensions; audit passively and do not execute reviewed tools by default.
+- **Supply-chain/CI/CD/language-pack signals** (`GitHub Actions`, `CI/CD`, dependency, lockfile, SBOM, Semgrep, Gitleaks, Trivy, npm audit, pip-audit, language pack, PR security review):
+  Load `$wuyun-supply-chain-audit`; sibling fallback: `../wuyun-supply-chain-audit/SKILL.md`. Use for local dependency/CI risk review, external scanner result normalization, and focused code-audit pack selection.
 - **Chain-mode signals** (`attack chain`, `chain mode`, cross-skill, multiple artifacts, combine findings, next skill recommendation):
   Stay in this skill, load `references/chain-mode.md`, and run `scripts/chain_planner.py <artifact...>` when local artifacts are available.
 - **Local code-audit signals** (repository, source tree, config, dependency, framework behavior):
@@ -98,6 +102,8 @@ Then choose tools by evidence value and risk:
 - **Frontend/runtime JS**: dedicated JS reverse tooling if available; otherwise browser/Chrome automation, jshook-style runtime hooks, AST/manual deobfuscation, sourcemap recovery, and network inspection.
 - **Companion workflows**: route specialized tasks through **Skill Router** above, then use that child skill's bundled helpers and references.
 - **Red-team/purple-team planning**: use `$wuyun-redteam-ops` to build rules-of-engagement-aware plans, attack-path matrices, detection opportunities, and specialist handoffs before active validation.
+- **Agent extension security**: use `$wuyun-skill-security-audit` before installing third-party skills/plugins/MCP servers; classify prompt-injection, sensitive-file, shell, network-egress, persistence, and package lifecycle risks without executing the reviewed artifact.
+- **Supply-chain and PR review**: use `$wuyun-supply-chain-audit`, `scripts/pr_security_review.py`, and `scripts/finding_export.py` to review CI/CD/dependency risk, normalize Semgrep/Gitleaks/Trivy/npm-audit/pip-audit outputs, and export SARIF/JSON/HTML.
 - **Binary/mobile/forensics**: IDA/Ghidra, `checksec`, debugger, Frida, pcap/file-carving tools as appropriate.
 
 When a preferred tool is missing, state the validation gap, use the closest safe fallback only if it preserves integrity, and avoid claiming absence of risk.
@@ -115,6 +121,10 @@ Use deterministic helpers when available; they produce leads, not final findings
 - `scripts/chain_planner.py`: local-only cross-skill chain planner that turns recon/audit/runtime artifacts into safe next-step recommendations and chain hypotheses.
 - `scripts/knowledge_base.py`: project-local or explicit cross-project reusable pattern memory without secrets.
 - `scripts/risk_report_helper.py`: CVSS 3.1 estimate, ATT&CK/ATLAS mapping, and minimal PoC template helper.
+- `scripts/catalog.py`: reads the Wuyun skill catalog and validates skill-directory coverage.
+- `scripts/finding_export.py`: normalizes Wuyun finding bundles and exports JSON, SARIF 2.1.0, Markdown, or HTML.
+- `scripts/pr_security_review.py`: diff-aware local PR review helper for CI artifacts and SARIF/Markdown output.
+- `scripts/benchmark_suite.py`: synthetic local benchmark cases for skill/MCP audit, supply-chain, language packs, PR review, finding export, and catalog coverage.
 - `scripts/validate_skill.py`: validates packaging, metadata, references, script compilation, stale names, and private-content leaks.
 - `scripts/run_eval.py`: local-only regression eval for core and companion helper workflows, redaction guarantees, Cloudflare triage, CLI routing, and chain planning.
 - `scripts/quality_gate.py`: runs publish-oriented validation and a bounded self-audit.
@@ -218,5 +228,7 @@ Load only the files needed for the current task:
 - `references/web-vuln-patterns.md`: web/API hypotheses and safe validation plans.
 - `references/ctf-mode.md`: CTF/lab loop, flag handling, tried/ruled-out template.
 - `references/chain-mode.md`: cross-skill chain planning, next-skill routing, confidence by link, and safety boundaries for evasion-related signals.
+- `references/catalog.json`: machine-readable skill catalog with domains, tool expectations, risk posture, and framework mappings.
+- `references/finding-schema.json`: normalized Wuyun finding bundle schema for JSON/SARIF/HTML/reporting adapters.
 
 For specialized companion workflows, use **Skill Router** and load only the matching companion skills or their sibling fallback files.

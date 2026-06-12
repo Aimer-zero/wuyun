@@ -39,6 +39,10 @@ TOOLS: tuple[ToolSpec, ...] = (
     ToolSpec("jq", "cli", ("minimal", "web", "cloud"), "JSON inspection", ("jq",), "", "jq", "jq"),
     ToolSpec("git", "cli", ("minimal", "code"), "repository inspection", ("git",), "", "git", "git"),
     ToolSpec("github-cli", "cli", ("recon",), "GitHub code/PR/issue inspection for scoped orgs", ("gh",), "", "gh", "gh"),
+    ToolSpec("semgrep", "cli", ("supply-chain", "code"), "static analysis and security rule scanning", ("semgrep",), "", "semgrep", None, pipx="semgrep"),
+    ToolSpec("gitleaks", "cli", ("supply-chain",), "repository secret scanning", ("gitleaks",), "", "gitleaks", "gitleaks"),
+    ToolSpec("trivy", "cli", ("supply-chain",), "dependency/container/IaC scanning", ("trivy",), "", "trivy", None, manual="Install Trivy from Aqua Security packages for your OS."),
+    ToolSpec("pip-audit", "cli", ("supply-chain",), "Python dependency vulnerability audit", ("pip-audit",), "", None, None, pipx="pip-audit"),
     ToolSpec("curl", "cli", ("minimal", "web", "cloud", "evasion"), "manual HTTP requests", ("curl",), "", "curl", "curl"),
     ToolSpec("node", "cli", ("js-reverse",), "local JavaScript parsing and bundle utilities", ("node",), "", "node", "nodejs"),
     ToolSpec("npm", "cli", ("js-reverse",), "install local JavaScript reverse-engineering helpers", ("npm",), "", "node", "npm"),
@@ -121,6 +125,7 @@ PROFILE_DESCRIPTIONS = {
     "recon": "scoped recon planning and local artifact wordlist helpers",
     "auth": "JWT/OAuth/OIDC/SAML/session review helpers",
     "evasion": "defensive canonicalization and owner-assisted origin review helpers",
+    "supply-chain": "CI/CD, dependency, secret scanning, scanner-output normalization, and language-pack helpers",
     "redteam": "authorized red-team/purple-team planning baseline across web, cloud, auth, recon, browser, and protocol helpers",
 }
 

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Wuyun Skill Security Audit"
+  short_description: "Audit AI skills, MCP configs, and agent extensions"
+  default_prompt: "Use $wuyun-skill-security-audit with $wuyun to passively audit this skill/plugin/MCP config for prompt-injection, tool-permission, remote-execution, sensitive-file, and supply-chain risk before installation."

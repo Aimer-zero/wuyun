@@ -40,6 +40,16 @@ PASSTHROUGH_COMMANDS = {
     "redteam-plan": ("wuyun-redteam-ops", "redteam_plan.py"),
     "attack-matrix": ("wuyun-redteam-ops", "attack_path_matrix.py"),
     "purple-map": ("wuyun-redteam-ops", "purple_team_mapper.py"),
+    "skill-audit": ("wuyun-skill-security-audit", "skill_security_audit.py"),
+    "supply-chain": ("wuyun-supply-chain-audit", "supply_chain_audit.py"),
+    "tool-output": ("wuyun-supply-chain-audit", "tool_output_adapter.py"),
+    "language-pack": ("wuyun-supply-chain-audit", "language_pack_mapper.py"),
+}
+CORE_PASSTHROUGH_COMMANDS = {
+    "catalog": "catalog.py",
+    "export-findings": "finding_export.py",
+    "pr-review": "pr_security_review.py",
+    "benchmark": "benchmark_suite.py",
 }
 
 
@@ -168,6 +178,10 @@ def print_playbooks() -> None:
         ("recon", "Scoped dorks, CT/subdomain plans, route wordlists, and tool integrations"),
         ("evasion-analysis", "Defensive canonicalization, parser mismatch, and origin exposure planning"),
         ("redteam-ops", "Authorized red-team/purple-team planning, attack-path matrixing, detection/remediation mapping"),
+        ("skill-security", "Passive audit of third-party skills, MCP configs, plugins, and agent instruction supply chain"),
+        ("supply-chain", "CI/CD, dependency, scanner-output, and language-pack security triage"),
+        ("pr-review", "Diff-aware PR security review with JSON/SARIF/Markdown output"),
+        ("benchmark", "Synthetic local benchmark suites for Wuyun productized security workflows"),
         ("chain-mode", "Cross-skill artifact synthesis and safe next-skill chain planning"),
         ("regression-eval", "Local-only helper regression checks for packaging, redaction, Cloudflare triage, and routing"),
         ("knowledge-base", "Reusable cross-project patterns without secrets or private data"),
@@ -410,6 +424,38 @@ def build_parser() -> argparse.ArgumentParser:
     purple_map.add_argument("args", nargs=argparse.REMAINDER, help="arguments for purple_team_mapper.py")
     purple_map.set_defaults(func=lambda args: cmd_passthrough("wuyun-redteam-ops", "purple_team_mapper.py", args))
 
+    skill_audit = sub.add_parser("skill-audit", help="audit AI skills, MCP configs, plugins, and agent instructions")
+    skill_audit.add_argument("args", nargs=argparse.REMAINDER, help="arguments for skill_security_audit.py")
+    skill_audit.set_defaults(func=lambda args: cmd_passthrough("wuyun-skill-security-audit", "skill_security_audit.py", args))
+
+    supply_chain = sub.add_parser("supply-chain", help="audit local supply-chain, dependency, and CI/CD risk")
+    supply_chain.add_argument("args", nargs=argparse.REMAINDER, help="arguments for supply_chain_audit.py")
+    supply_chain.set_defaults(func=lambda args: cmd_passthrough("wuyun-supply-chain-audit", "supply_chain_audit.py", args))
+
+    tool_output = sub.add_parser("tool-output", help="normalize scanner JSON into Wuyun finding schema")
+    tool_output.add_argument("args", nargs=argparse.REMAINDER, help="arguments for tool_output_adapter.py")
+    tool_output.set_defaults(func=lambda args: cmd_passthrough("wuyun-supply-chain-audit", "tool_output_adapter.py", args))
+
+    language_pack = sub.add_parser("language-pack", help="map repository signals to focused code-audit language packs")
+    language_pack.add_argument("args", nargs=argparse.REMAINDER, help="arguments for language_pack_mapper.py")
+    language_pack.set_defaults(func=lambda args: cmd_passthrough("wuyun-supply-chain-audit", "language_pack_mapper.py", args))
+
+    catalog = sub.add_parser("catalog", help="show or validate the Wuyun skill catalog")
+    catalog.add_argument("args", nargs=argparse.REMAINDER, help="arguments for catalog.py")
+    catalog.set_defaults(func=lambda args: run_script("catalog.py", list(args.args)))
+
+    export_findings = sub.add_parser("export-findings", help="export Wuyun finding JSON to SARIF/Markdown/HTML")
+    export_findings.add_argument("args", nargs=argparse.REMAINDER, help="arguments for finding_export.py")
+    export_findings.set_defaults(func=lambda args: run_script("finding_export.py", list(args.args)))
+
+    pr_review = sub.add_parser("pr-review", help="run local diff-aware PR security review")
+    pr_review.add_argument("args", nargs=argparse.REMAINDER, help="arguments for pr_security_review.py")
+    pr_review.set_defaults(func=lambda args: run_script("pr_security_review.py", list(args.args)))
+
+    benchmark = sub.add_parser("benchmark", help="run Wuyun synthetic local benchmark suites")
+    benchmark.add_argument("args", nargs=argparse.REMAINDER, help="arguments for benchmark_suite.py")
+    benchmark.set_defaults(func=lambda args: run_script("benchmark_suite.py", list(args.args)))
+
     kb = sub.add_parser("kb", help="manage reusable Wuyun knowledge entries")
     kb.add_argument("args", nargs=argparse.REMAINDER, help="arguments for knowledge_base.py")
     kb.set_defaults(func=lambda args: run_script("knowledge_base.py", list(args.args)))
@@ -444,6 +490,12 @@ def main(argv: list[str]) -> int:
         if forwarded[:1] == ["--"]:
             forwarded = forwarded[1:]
         return run_companion_script(skill_name, script_name, forwarded)
+    if argv and argv[0] in CORE_PASSTHROUGH_COMMANDS:
+        script_name = CORE_PASSTHROUGH_COMMANDS[argv[0]]
+        forwarded = argv[1:]
+        if forwarded[:1] == ["--"]:
+            forwarded = forwarded[1:]
+        return run_script(script_name, forwarded)
     if argv and argv[0] == "risk-report":
         forwarded = argv[1:]
         if forwarded[:1] == ["--"]:

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Wuyun Supply Chain Audit"
+  short_description: "CI/CD, dependency, and language-pack audit"
+  default_prompt: "Use $wuyun-supply-chain-audit with $wuyun to passively review this repository's CI/CD, dependencies, scanner outputs, and language-specific audit priorities before deeper security testing."

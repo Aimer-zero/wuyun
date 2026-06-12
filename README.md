@@ -26,10 +26,10 @@ curl -fsSL https://raw.githubusercontent.com/Aimer-zero/wuyun/main/install.sh | 
 curl -fsSL https://raw.githubusercontent.com/Aimer-zero/wuyun/main/install.sh | bash -s -- --target claude
 ```
 
-固定发布版本安装（当前发布：`v0.2.2`）：
+固定发布版本安装（当前发布：`v0.3.0`）：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Aimer-zero/wuyun/main/install.sh | bash -s -- --version v0.2.2
+curl -fsSL https://raw.githubusercontent.com/Aimer-zero/wuyun/main/install.sh | bash -s -- --version v0.3.0
 ```
 
 本地开发安装当前 checkout：
@@ -45,6 +45,7 @@ curl -fsSL https://raw.githubusercontent.com/Aimer-zero/wuyun/main/install.sh | 
 - **低影响默认**：优先本地、被动、dry-run、canary marker、合成数据和 owner-assisted 验证。
 - **可落地**：每个模块自带 references 和 scripts，能产出路线、wordlist、HAR 分析、OpenAPI 分析、JWT 离线审计、PoC 计划和报告模板。
 - **可组合**：chain mode 和 redteam-ops 能把 recon、JS、HAR、Web/API、auth、cloud 等结果合成下一步验证路线和 attack-path matrix。
+- **可接入工程流**：支持 skill/MCP 安全审计、供应链/CI-CD 检查、PR diff review、scanner JSON 归一、SARIF/HTML/Markdown 导出。
 
 ## 常用提示词
 
@@ -86,6 +87,8 @@ wuyun-ai-audit/           # AI 安全：LLM/RAG/Agent、提示注入、工具边
 wuyun-recon/              # Recon：范围规划、dork、CT/subdomain、路由字典、工具导出
 wuyun-evasion/            # 防御性检测健壮性：规范化差异、parser mismatch、origin exposure 计划
 wuyun-redteam-ops/        # 红队/紫队计划：ROE、attack-path matrix、紫队检测映射、修复/复测闭环
+wuyun-skill-security-audit/ # Skill/MCP/插件安全：prompt supply-chain、权限、敏感文件、远程执行
+wuyun-supply-chain-audit/  # 供应链/CI-CD：依赖、scanner 输出归一、PR review、language packs
 ```
 
 ## 本地验证
@@ -93,6 +96,7 @@ wuyun-redteam-ops/        # 红队/紫队计划：ROE、attack-path matrix、紫
 ```bash
 python3 wuyun/scripts/validate_skill.py .
 python3 wuyun/scripts/run_eval.py .
+python3 wuyun/scripts/benchmark_suite.py --suite all
 python3 wuyun/scripts/quality_gate.py . --skip-preflight
 bash -n install.sh
 ```
@@ -104,8 +108,16 @@ bash -n install.sh
 ```bash
 python3 wuyun/scripts/wuyun_cli.py version --json
 python3 wuyun/scripts/wuyun_cli.py playbooks
+python3 wuyun/scripts/wuyun_cli.py catalog --check --json
 python3 wuyun/scripts/wuyun_cli.py eval .
 python3 wuyun/scripts/wuyun_cli.py audit /path/to/repo --code-only
+python3 wuyun/scripts/wuyun_cli.py skill-audit /path/to/skill-or-plugin --json
+python3 wuyun/scripts/wuyun_cli.py supply-chain /path/to/repo --json
+python3 wuyun/scripts/wuyun_cli.py pr-review --path . --base origin/main --json --sarif wuyun-pr.sarif
+python3 wuyun/scripts/wuyun_cli.py tool-output semgrep.json --tool semgrep --json
+python3 wuyun/scripts/wuyun_cli.py language-pack /path/to/repo --json
+python3 wuyun/scripts/wuyun_cli.py export-findings findings.json --format sarif --output findings.sarif
+python3 wuyun/scripts/wuyun_cli.py benchmark --suite all
 python3 wuyun/scripts/wuyun_cli.py js-reverse /path/to/dist --json
 python3 wuyun/scripts/wuyun_cli.py chain recon.json js-surface.json har-analysis.json
 python3 wuyun/scripts/wuyun_cli.py cloudflare -- --har capture.har
@@ -123,6 +135,8 @@ python3 wuyun/scripts/wuyun_cli.py purple-map attack-matrix.json --owner securit
 - 浏览器运行时复现、HAR 证据分析
 - 跨模块发现聚合、chain mode 下一步路线规划
 - 已授权红队 / 紫队演练的 ROE、attack-path matrix、紫队检测映射、检测机会和修复闭环
+- 第三方 Skill / MCP / 插件 / AGENTS.md 安全审计
+- 供应链、依赖、CI/CD、PR diff 安全审计和 scanner 输出归一
 - WAF/CDN/AI 策略的防御性检测健壮性评估
 - JWT / OAuth / SAML / 多租户权限专项
 - LLM / RAG / Agent 安全评估
@@ -173,10 +187,10 @@ Rerun the installer to update. Install only for Claude:
 curl -fsSL https://raw.githubusercontent.com/Aimer-zero/wuyun/main/install.sh | bash -s -- --target claude
 ```
 
-Install a fixed release (current release: `v0.2.2`):
+Install a fixed release (current release: `v0.3.0`):
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Aimer-zero/wuyun/main/install.sh | bash -s -- --version v0.2.2
+curl -fsSL https://raw.githubusercontent.com/Aimer-zero/wuyun/main/install.sh | bash -s -- --version v0.3.0
 ```
 
 Install from a local checkout:
@@ -192,6 +206,7 @@ Install from a local checkout:
 - **Low-impact by default**: prefers local/passive/dry-run workflows, canary markers, synthetic data, and owner-assisted validation.
 - **Practical**: bundled references and scripts produce plans, wordlists, HAR analysis, OpenAPI review, JWT offline audit, PoC plans, and report templates.
 - **Composable**: chain mode and redteam-ops combine recon, JS, HAR, Web/API, auth, and cloud outputs into safe validation paths and attack-path matrices.
+- **Engineering-friendly**: skill/MCP security audit, supply-chain/CI-CD review, PR diff review, scanner JSON normalization, and SARIF/HTML/Markdown export.
 
 ## Copy-paste prompts
 
@@ -233,6 +248,8 @@ wuyun-ai-audit/           # AI security: LLM/RAG/Agent, prompt injection, tool b
 wuyun-recon/              # Recon: scoped plans, dorks, CT/subdomains, route wordlists, tool artifacts
 wuyun-evasion/            # Defensive detection resilience: canonicalization, parser mismatch, origin exposure plans
 wuyun-redteam-ops/        # Red/purple-team planning: ROE, attack paths, purple-team mapping, remediation/retest loop
+wuyun-skill-security-audit/ # Skill/MCP/plugin security: prompt supply chain, permissions, sensitive files
+wuyun-supply-chain-audit/  # Supply chain/CI-CD: dependencies, scanner adapters, PR review, language packs
 ```
 
 ## Local validation
@@ -240,6 +257,7 @@ wuyun-redteam-ops/        # Red/purple-team planning: ROE, attack paths, purple-
 ```bash
 python3 wuyun/scripts/validate_skill.py .
 python3 wuyun/scripts/run_eval.py .
+python3 wuyun/scripts/benchmark_suite.py --suite all
 python3 wuyun/scripts/quality_gate.py . --skip-preflight
 bash -n install.sh
 ```
@@ -251,8 +269,16 @@ Useful CLI commands:
 ```bash
 python3 wuyun/scripts/wuyun_cli.py version --json
 python3 wuyun/scripts/wuyun_cli.py playbooks
+python3 wuyun/scripts/wuyun_cli.py catalog --check --json
 python3 wuyun/scripts/wuyun_cli.py eval .
 python3 wuyun/scripts/wuyun_cli.py audit /path/to/repo --code-only
+python3 wuyun/scripts/wuyun_cli.py skill-audit /path/to/skill-or-plugin --json
+python3 wuyun/scripts/wuyun_cli.py supply-chain /path/to/repo --json
+python3 wuyun/scripts/wuyun_cli.py pr-review --path . --base origin/main --json --sarif wuyun-pr.sarif
+python3 wuyun/scripts/wuyun_cli.py tool-output semgrep.json --tool semgrep --json
+python3 wuyun/scripts/wuyun_cli.py language-pack /path/to/repo --json
+python3 wuyun/scripts/wuyun_cli.py export-findings findings.json --format sarif --output findings.sarif
+python3 wuyun/scripts/wuyun_cli.py benchmark --suite all
 python3 wuyun/scripts/wuyun_cli.py js-reverse /path/to/dist --json
 python3 wuyun/scripts/wuyun_cli.py chain recon.json js-surface.json har-analysis.json
 python3 wuyun/scripts/wuyun_cli.py cloudflare -- --har capture.har
@@ -270,6 +296,8 @@ python3 wuyun/scripts/wuyun_cli.py purple-map attack-matrix.json --owner securit
 - Browser runtime reproduction and HAR evidence analysis
 - Cross-module finding synthesis and chain-mode next-step planning
 - Authorized red-team/purple-team ROE, attack-path matrixing, purple-team detection mapping, and remediation loop
+- Third-party Skill / MCP / plugin / AGENTS.md security review
+- Supply-chain, dependency, CI/CD, PR diff review, and scanner-output normalization
 - Defensive WAF/CDN/AI-policy detection-resilience assessment
 - JWT/OAuth/SAML/session/tenant authorization review
 - LLM/RAG/agent security assessment

@@ -1,0 +1,41 @@
+name: Wuyun PR security review
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Run Wuyun diff-aware PR review
+        run: |
+          python3 wuyun/scripts/wuyun_cli.py pr-review \
+            --path . \
+            --base "origin/${{ github.base_ref }}" \
+            --head HEAD \
+            --json \
+            --sarif wuyun-pr-security.sarif \
+            --markdown wuyun-pr-security.md > wuyun-pr-security.json
+
+      - name: Upload Wuyun PR review artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wuyun-pr-security-review
+          path: |
+            wuyun-pr-security.json
+            wuyun-pr-security.sarif
+            wuyun-pr-security.md

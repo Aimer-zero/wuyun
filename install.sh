@@ -29,6 +29,8 @@ SKILLS=(
   "wuyun-recon"
   "wuyun-evasion"
   "wuyun-redteam-ops"
+  "wuyun-skill-security-audit"
+  "wuyun-supply-chain-audit"
 )
 
 die() {

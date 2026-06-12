@@ -27,6 +27,9 @@ jobs:
       - name: Run offline regression suite
         run: python3 wuyun/scripts/run_eval.py .
 
+      - name: Run synthetic benchmark suite
+        run: python3 wuyun/scripts/benchmark_suite.py --suite all
+
       - name: Run publish quality gate
         run: python3 wuyun/scripts/quality_gate.py . --skip-preflight
 

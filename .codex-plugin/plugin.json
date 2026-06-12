@@ -1,0 +1,39 @@
+{
+  "name": "wuyun",
+  "version": "0.3.0",
+  "description": "Autonomous vulnerability research skill suite for authorized code audits, Web/API review, AI security, supply-chain triage, red/purple-team planning, and agent extension security.",
+  "author": {
+    "name": "Aimer-zero",
+    "url": "https://github.com/Aimer-zero"
+  },
+  "homepage": "https://github.com/Aimer-zero/wuyun",
+  "repository": "https://github.com/Aimer-zero/wuyun",
+  "license": "MIT",
+  "keywords": [
+    "security",
+    "vulnerability-research",
+    "codex",
+    "skills",
+    "supply-chain",
+    "mcp"
+  ],
+  "skills": "skills",
+  "interface": {
+    "displayName": "Wuyun",
+    "shortDescription": "Autonomous vulnerability research skills",
+    "longDescription": "Wuyun routes authorized security research tasks across Web/API, cloud, JS reverse engineering, browser runtime, auth, AI, recon, exploit-assist, red/purple-team planning, skill/MCP security, and supply-chain audit workflows.",
+    "developerName": "Aimer-zero",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Write",
+      "Interactive"
+    ],
+    "websiteURL": "https://github.com/Aimer-zero/wuyun",
+    "defaultPrompt": [
+      "Use $wuyun to audit this repo safely.",
+      "Use $wuyun to review this PR for security risk.",
+      "Use $wuyun to audit this skill/MCP config."
+    ],
+    "brandColor": "#111827"
+  }
+}

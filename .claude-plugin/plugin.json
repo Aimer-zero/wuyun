@@ -1,0 +1,8 @@
+{
+  "name": "wuyun",
+  "version": "0.3.0",
+  "description": "Autonomous vulnerability research skill suite for authorized security review, agent skill security, and supply-chain audit workflows.",
+  "repository": "https://github.com/Aimer-zero/wuyun",
+  "license": "MIT",
+  "skills": "skills"
+}

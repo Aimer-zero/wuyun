@@ -47,6 +47,7 @@ def main(argv: list[str]) -> int:
     checks = [
         ("Package validation", [sys.executable, str(scripts / "validate_skill.py"), str(root)]),
         ("Offline regression eval", [sys.executable, str(scripts / "run_eval.py"), str(root)]),
+        ("Synthetic benchmark suite", [sys.executable, str(scripts / "benchmark_suite.py"), "--suite", "all"]),
         ("Installer syntax", ["bash", "-n", str(root / "install.sh")]),
         ("Bounded self passive audit", [
             sys.executable, str(scripts / "passive_repo_audit.py"), str(root),
@@ -65,6 +66,8 @@ def main(argv: list[str]) -> int:
             "--exclude", "wuyun-recon/scripts",
             "--exclude", "wuyun-evasion/scripts",
             "--exclude", "wuyun-redteam-ops/scripts",
+            "--exclude", "wuyun-skill-security-audit/scripts",
+            "--exclude", "wuyun-supply-chain-audit/scripts",
             "--exclude", "wuyun/agents",
             "--exclude", "wuyun-web-api-audit/agents",
             "--exclude", "wuyun-exploit-assist/agents",
@@ -78,6 +81,8 @@ def main(argv: list[str]) -> int:
             "--exclude", "wuyun-recon/agents",
             "--exclude", "wuyun-evasion/agents",
             "--exclude", "wuyun-redteam-ops/agents",
+            "--exclude", "wuyun-skill-security-audit/agents",
+            "--exclude", "wuyun-supply-chain-audit/agents",
         ]),
     ]
     if not args.skip_preflight:

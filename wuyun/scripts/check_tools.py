@@ -45,6 +45,11 @@ TOOLS: tuple[Tool, ...] = (
     Tool("jq", "passive", "inspect JSON responses, configs, and API schemas"),
     Tool("git", "passive", "inspect history, diffs, ignored files, and provenance"),
     Tool("gh", "passive", "inspect GitHub issues, PRs, and CI metadata"),
+    Tool("semgrep", "supply-chain", "static analysis and rule-based code security scanning"),
+    Tool("gitleaks", "supply-chain", "secret scanning for repositories and CI"),
+    Tool("trivy", "supply-chain", "dependency, container, IaC, and filesystem vulnerability scanning"),
+    Tool("pip-audit", "supply-chain", "Python dependency vulnerability audit"),
+    Tool("npm-audit", "supply-chain", "Node dependency audit and package lifecycle inspection", ("npm",)),
     Tool("subfinder", "recon", "scoped passive subdomain enumeration"),
     Tool("amass", "recon", "scoped passive/active asset discovery"),
     Tool("curl", "http", "manual HTTP requests for scoped targets", ("wget",)),
@@ -120,7 +125,7 @@ PY_MODULES: tuple[PyModule, ...] = (
 ACTIVE_GROUPS = {"http", "web-enum", "web-scan", "network"}
 SPECIALIZED_GROUPS = {
     "binary", "mobile", "forensics", "http-proxy",
-    "python-binary", "python-mobile", "python-js-reverse", "python-browser", "python-protocol", "python-auth", "recon", "auth-tools",
+    "python-binary", "python-mobile", "python-js-reverse", "python-browser", "python-protocol", "python-auth", "recon", "auth-tools", "supply-chain",
 }
 
 

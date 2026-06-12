@@ -28,6 +28,10 @@ REQUIRED_ROOT_FILES = [
     "LICENSE",
     "VERSION",
     "install.sh",
+    "catalog.json",
+    "index.json",
+    ".codex-plugin/plugin.json",
+    ".claude-plugin/plugin.json",
 ]
 
 REQUIRED_SKILL_FILES = [
@@ -45,6 +49,8 @@ REQUIRED_SKILL_FILES = [
     "references/web-vuln-patterns.md",
     "references/ctf-mode.md",
     "references/chain-mode.md",
+    "references/catalog.json",
+    "references/finding-schema.json",
     "scripts/check_tools.py",
     "scripts/cloudflare_triage.py",
     "scripts/passive_repo_audit.py",
@@ -57,6 +63,10 @@ REQUIRED_SKILL_FILES = [
     "scripts/knowledge_base.py",
     "scripts/risk_report_helper.py",
     "scripts/chain_planner.py",
+    "scripts/catalog.py",
+    "scripts/finding_export.py",
+    "scripts/pr_security_review.py",
+    "scripts/benchmark_suite.py",
 ]
 
 COMPANION_SKILLS: dict[str, list[str]] = {
@@ -184,6 +194,23 @@ COMPANION_SKILLS: dict[str, list[str]] = {
         "scripts/redteam_plan.py",
         "scripts/attack_path_matrix.py",
         "scripts/purple_team_mapper.py",
+    ],
+    "wuyun-skill-security-audit": [
+        "SKILL.md",
+        "agents/openai.yaml",
+        "references/skill-mcp-threat-model.md",
+        "references/risk-scoring.md",
+        "scripts/skill_security_audit.py",
+    ],
+    "wuyun-supply-chain-audit": [
+        "SKILL.md",
+        "agents/openai.yaml",
+        "references/supply-chain-cicd.md",
+        "references/language-packs.md",
+        "references/tool-output-adapters.md",
+        "scripts/supply_chain_audit.py",
+        "scripts/tool_output_adapter.py",
+        "scripts/language_pack_mapper.py",
     ],
 }
 
