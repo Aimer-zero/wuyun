@@ -26,6 +26,7 @@ class CheckResult:
 REQUIRED_ROOT_FILES = [
     "README.md",
     "LICENSE",
+    "VERSION",
     "install.sh",
 ]
 
@@ -173,6 +174,14 @@ COMPANION_SKILLS: dict[str, list[str]] = {
         "scripts/canonicalization_lab.py",
         "scripts/origin_exposure_plan.py",
         "scripts/detection_resilience_plan.py",
+    ],
+    "wuyun-redteam-ops": [
+        "SKILL.md",
+        "agents/openai.yaml",
+        "references/redteam-workflow.md",
+        "references/attack-path-modeling.md",
+        "scripts/redteam_plan.py",
+        "scripts/attack_path_matrix.py",
     ],
 }
 

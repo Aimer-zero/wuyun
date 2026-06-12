@@ -121,6 +121,7 @@ PROFILE_DESCRIPTIONS = {
     "recon": "scoped recon planning and local artifact wordlist helpers",
     "auth": "JWT/OAuth/OIDC/SAML/session review helpers",
     "evasion": "defensive canonicalization and owner-assisted origin review helpers",
+    "redteam": "authorized red-team/purple-team planning baseline across web, cloud, auth, recon, browser, and protocol helpers",
 }
 
 
@@ -146,6 +147,8 @@ def selected_specs(profiles: Iterable[str], tools: Iterable[str]) -> list[ToolSp
     selected_names = set(tools)
     if "all" in selected_profiles:
         selected_profiles = set(PROFILE_DESCRIPTIONS)
+    if "redteam" in selected_profiles:
+        selected_profiles.update({"minimal", "web", "cloud", "recon", "auth", "browser-runtime", "protocol"})
     out = []
     for spec in TOOLS:
         if selected_names and spec.name in selected_names:

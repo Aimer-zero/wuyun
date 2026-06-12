@@ -8,7 +8,6 @@ WebSocket replay when the `websockets` Python module is installed.
 from __future__ import annotations
 
 import argparse
-import asyncio
 import hashlib
 import json
 import sys
@@ -71,6 +70,7 @@ def http_post_json(url: str, headers: dict[str, str], body: Any, timeout: float,
 
 async def websocket_replay(case: dict[str, Any], timeout: float) -> list[ReplayResult]:
     try:
+        import asyncio
         import websockets
     except Exception as exc:  # noqa: BLE001
         return [ReplayResult("websocket-dependency", None, 0, 0, "", "", f"websockets module unavailable: {exc}")]
@@ -238,6 +238,8 @@ def main(argv: list[str]) -> int:
             print("error: --scope-host is required with --authorize-protocol-replay", file=sys.stderr)
             return 2
         try:
+            import asyncio
+
             payload = asyncio.run(execute(case, args))
         except ValueError as exc:
             print(f"error: {exc}", file=sys.stderr)

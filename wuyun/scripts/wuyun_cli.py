@@ -37,6 +37,8 @@ PASSTHROUGH_COMMANDS = {
     "evasion-lab": ("wuyun-evasion", "canonicalization_lab.py"),
     "origin-plan": ("wuyun-evasion", "origin_exposure_plan.py"),
     "detection-plan": ("wuyun-evasion", "detection_resilience_plan.py"),
+    "redteam-plan": ("wuyun-redteam-ops", "redteam_plan.py"),
+    "attack-matrix": ("wuyun-redteam-ops", "attack_path_matrix.py"),
 }
 
 
@@ -103,6 +105,7 @@ def print_playbooks() -> None:
         ("ai-audit", "LLM/RAG/agent prompt injection, tool abuse, and AI workflow security"),
         ("recon", "Scoped dorks, CT/subdomain plans, route wordlists, and tool integrations"),
         ("evasion-analysis", "Defensive canonicalization, parser mismatch, and origin exposure planning"),
+        ("redteam-ops", "Authorized red-team/purple-team engagement planning and attack-path matrixing"),
         ("chain-mode", "Cross-skill artifact synthesis and safe next-skill chain planning"),
         ("regression-eval", "Local-only helper regression checks for packaging, redaction, Cloudflare triage, and routing"),
         ("knowledge-base", "Reusable cross-project patterns without secrets or private data"),
@@ -332,6 +335,14 @@ def build_parser() -> argparse.ArgumentParser:
     detection = sub.add_parser("detection-plan", help="generate safe detection-resilience test matrix")
     detection.add_argument("args", nargs=argparse.REMAINDER, help="arguments for detection_resilience_plan.py")
     detection.set_defaults(func=lambda args: cmd_passthrough("wuyun-evasion", "detection_resilience_plan.py", args))
+
+    redteam = sub.add_parser("redteam-plan", help="generate authorized red-team/purple-team operation plan")
+    redteam.add_argument("args", nargs=argparse.REMAINDER, help="arguments for redteam_plan.py")
+    redteam.set_defaults(func=lambda args: cmd_passthrough("wuyun-redteam-ops", "redteam_plan.py", args))
+
+    attack_matrix = sub.add_parser("attack-matrix", help="build attack-path matrix from local artifacts")
+    attack_matrix.add_argument("args", nargs=argparse.REMAINDER, help="arguments for attack_path_matrix.py")
+    attack_matrix.set_defaults(func=lambda args: cmd_passthrough("wuyun-redteam-ops", "attack_path_matrix.py", args))
 
     kb = sub.add_parser("kb", help="manage reusable Wuyun knowledge entries")
     kb.add_argument("args", nargs=argparse.REMAINDER, help="arguments for knowledge_base.py")

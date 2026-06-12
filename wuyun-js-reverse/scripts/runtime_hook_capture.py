@@ -15,7 +15,6 @@ Running against a URL requires --authorize-runtime-observation and --scope-host.
 from __future__ import annotations
 
 import argparse
-import asyncio
 import json
 import re
 import sys
@@ -255,7 +254,6 @@ Execution requires --authorize-runtime-observation and --scope-host.
 from __future__ import annotations
 
 import argparse
-import asyncio
 import json
 import sys
 from pathlib import Path
@@ -334,6 +332,8 @@ def main(argv: list[str]) -> int:
         print("error: --scope-host is required", file=sys.stderr)
         return 2
     try:
+        import asyncio
+
         return asyncio.run(run(args))
     except ValueError as exc:
         print(f"error: {exc}", file=sys.stderr)
@@ -676,6 +676,8 @@ def main(argv: list[str]) -> int:
         print("error: --max-events must be <= 5000", file=sys.stderr)
         return 2
     try:
+        import asyncio
+
         return asyncio.run(run_playwright(args))
     except ValueError as exc:
         print(f"error: {exc}", file=sys.stderr)

@@ -26,6 +26,12 @@ curl -fsSL https://raw.githubusercontent.com/Aimer-zero/wuyun/main/install.sh | 
 curl -fsSL https://raw.githubusercontent.com/Aimer-zero/wuyun/main/install.sh | bash -s -- --target claude
 ```
 
+固定发布版本安装（当前发布：`v0.2.0`）：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Aimer-zero/wuyun/main/install.sh | bash -s -- --version v0.2.0
+```
+
 本地开发安装当前 checkout：
 
 ```bash
@@ -34,11 +40,11 @@ curl -fsSL https://raw.githubusercontent.com/Aimer-zero/wuyun/main/install.sh | 
 
 ## 为什么值得使用
 
-- **会路由**：`$wuyun` 根据任务自动选择 Web/API、云、JS 逆向、浏览器运行时、协议、认证、AI 安全、Recon、PoC 辅助等子 skill。
+- **会路由**：`$wuyun` 根据任务自动选择 Web/API、云、JS 逆向、浏览器运行时、协议、认证、AI 安全、Recon、红队计划、PoC 辅助等子 skill。
 - **重证据**：输出区分 confirmed / likely / speculative / ruled-out，减少“扫描器式误报”。
 - **低影响默认**：优先本地、被动、dry-run、canary marker、合成数据和 owner-assisted 验证。
 - **可落地**：每个模块自带 references 和 scripts，能产出路线、wordlist、HAR 分析、OpenAPI 分析、JWT 离线审计、PoC 计划和报告模板。
-- **可组合**：chain mode 能把 recon、JS、HAR、Web/API、auth、cloud 等结果合成下一步验证路线。
+- **可组合**：chain mode 和 redteam-ops 能把 recon、JS、HAR、Web/API、auth、cloud 等结果合成下一步验证路线和 attack-path matrix。
 
 ## 常用提示词
 
@@ -58,6 +64,10 @@ curl -fsSL https://raw.githubusercontent.com/Aimer-zero/wuyun/main/install.sh | 
 使用 $wuyun-exploit-assist，把已确认的 SSTI/SQLi/反序列化线索整理成 canary-safe 最小 PoC 计划；不要生成 webshell、反弹 shell、数据导出或 WAF 绕过 payload。
 ```
 
+```text
+使用 $wuyun-redteam-ops，mode redteam-ops。目标：一次已授权的 Web+Cloud 紫队演练。请先确认 ROE 和停止条件，再输出 attack-path matrix、安全验证步骤、检测机会和修复/复测计划；不要生成恶意代码、持久化、凭据窃取或 WAF 绕过 payload。
+```
+
 示例提示词保留在本文档；本地 `examples/` 目录可自建但不会提交到仓库。
 
 ## 模块
@@ -75,6 +85,7 @@ wuyun-auth-audit/         # 认证授权：JWT、OAuth/OIDC、SAML、Session、C
 wuyun-ai-audit/           # AI 安全：LLM/RAG/Agent、提示注入、工具边界、输出 Sink
 wuyun-recon/              # Recon：范围规划、dork、CT/subdomain、路由字典、工具导出
 wuyun-evasion/            # 防御性检测健壮性：规范化差异、parser mismatch、origin exposure 计划
+wuyun-redteam-ops/        # 红队/紫队计划：ROE、attack-path matrix、安全验证、检测与修复闭环
 ```
 
 ## 本地验证
@@ -98,6 +109,8 @@ python3 wuyun/scripts/wuyun_cli.py js-reverse /path/to/dist --json
 python3 wuyun/scripts/wuyun_cli.py chain recon.json js-surface.json har-analysis.json
 python3 wuyun/scripts/wuyun_cli.py cloudflare -- --har capture.har
 python3 wuyun/scripts/wuyun_cli.py ssti-probes --engine all
+python3 wuyun/scripts/wuyun_cli.py redteam-plan --profile web --profile cloud --asset api.example.invalid --json
+python3 wuyun/scripts/wuyun_cli.py attack-matrix recon.json js-surface.json audit.json --json
 ```
 
 ## 适用场景
@@ -107,6 +120,7 @@ python3 wuyun/scripts/wuyun_cli.py ssti-probes --engine all
 - 前端 JS 逆向、反混淆、签名协议分析
 - 浏览器运行时复现、HAR 证据分析
 - 跨模块发现聚合、chain mode 下一步路线规划
+- 已授权红队 / 紫队演练的 ROE、attack-path matrix、检测机会和修复闭环
 - WAF/CDN/AI 策略的防御性检测健壮性评估
 - JWT / OAuth / SAML / 多租户权限专项
 - LLM / RAG / Agent 安全评估
@@ -157,6 +171,12 @@ Rerun the installer to update. Install only for Claude:
 curl -fsSL https://raw.githubusercontent.com/Aimer-zero/wuyun/main/install.sh | bash -s -- --target claude
 ```
 
+Install a fixed release (current release: `v0.2.0`):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Aimer-zero/wuyun/main/install.sh | bash -s -- --version v0.2.0
+```
+
 Install from a local checkout:
 
 ```bash
@@ -165,11 +185,11 @@ Install from a local checkout:
 
 ## Why use it
 
-- **Routing**: `$wuyun` selects the right companion skill for Web/API, cloud, JS reverse, browser runtime, protocol, auth, AI security, recon, and PoC assistance.
+- **Routing**: `$wuyun` selects the right companion skill for Web/API, cloud, JS reverse, browser runtime, protocol, auth, AI security, recon, red-team planning, and PoC assistance.
 - **Evidence-first**: outputs separate confirmed / likely / speculative / ruled-out items to reduce scanner-style false positives.
 - **Low-impact by default**: prefers local/passive/dry-run workflows, canary markers, synthetic data, and owner-assisted validation.
 - **Practical**: bundled references and scripts produce plans, wordlists, HAR analysis, OpenAPI review, JWT offline audit, PoC plans, and report templates.
-- **Composable**: chain mode combines recon, JS, HAR, Web/API, auth, and cloud outputs into the next safe validation path.
+- **Composable**: chain mode and redteam-ops combine recon, JS, HAR, Web/API, auth, and cloud outputs into safe validation paths and attack-path matrices.
 
 ## Copy-paste prompts
 
@@ -189,6 +209,10 @@ Use $wuyun, chain mode, to combine recon.json, js-surface.json, and har-analysis
 Use $wuyun-exploit-assist to turn a confirmed SSTI/SQLi/deserialization lead into a canary-safe minimal PoC plan; do not generate webshells, reverse shells, data-dumping, or WAF-bypass payloads.
 ```
 
+```text
+Use $wuyun-redteam-ops, mode redteam-ops, for an authorized Web+Cloud purple-team exercise. Confirm ROE and stop conditions first, then produce an attack-path matrix, safe validation steps, detection opportunities, and remediation/retest plan without malware, persistence, credential theft, or WAF-bypass payloads.
+```
+
 Reusable prompt examples are kept in this README; local `examples/` directories may be created but are not committed.
 
 ## Modules
@@ -206,6 +230,7 @@ wuyun-auth-audit/         # Auth: JWT, OAuth/OIDC, SAML, session, cookie, tenant
 wuyun-ai-audit/           # AI security: LLM/RAG/Agent, prompt injection, tool boundaries, output sinks
 wuyun-recon/              # Recon: scoped plans, dorks, CT/subdomains, route wordlists, tool artifacts
 wuyun-evasion/            # Defensive detection resilience: canonicalization, parser mismatch, origin exposure plans
+wuyun-redteam-ops/        # Red/purple-team planning: ROE, attack paths, safe validation, detection/remediation loop
 ```
 
 ## Local validation
@@ -229,6 +254,8 @@ python3 wuyun/scripts/wuyun_cli.py js-reverse /path/to/dist --json
 python3 wuyun/scripts/wuyun_cli.py chain recon.json js-surface.json har-analysis.json
 python3 wuyun/scripts/wuyun_cli.py cloudflare -- --har capture.har
 python3 wuyun/scripts/wuyun_cli.py ssti-probes --engine all
+python3 wuyun/scripts/wuyun_cli.py redteam-plan --profile web --profile cloud --asset api.example.invalid --json
+python3 wuyun/scripts/wuyun_cli.py attack-matrix recon.json js-surface.json audit.json --json
 ```
 
 ## Intended use
@@ -238,6 +265,7 @@ python3 wuyun/scripts/wuyun_cli.py ssti-probes --engine all
 - Frontend JS reverse engineering, deobfuscation, and signing protocol analysis
 - Browser runtime reproduction and HAR evidence analysis
 - Cross-module finding synthesis and chain-mode next-step planning
+- Authorized red-team/purple-team ROE, attack-path matrixing, detection opportunities, and remediation loop
 - Defensive WAF/CDN/AI-policy detection-resilience assessment
 - JWT/OAuth/SAML/session/tenant authorization review
 - LLM/RAG/agent security assessment

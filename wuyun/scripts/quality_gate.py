@@ -64,6 +64,7 @@ def main(argv: list[str]) -> int:
             "--exclude", "wuyun-ai-audit/scripts",
             "--exclude", "wuyun-recon/scripts",
             "--exclude", "wuyun-evasion/scripts",
+            "--exclude", "wuyun-redteam-ops/scripts",
             "--exclude", "wuyun/agents",
             "--exclude", "wuyun-web-api-audit/agents",
             "--exclude", "wuyun-exploit-assist/agents",
@@ -76,6 +77,7 @@ def main(argv: list[str]) -> int:
             "--exclude", "wuyun-ai-audit/agents",
             "--exclude", "wuyun-recon/agents",
             "--exclude", "wuyun-evasion/agents",
+            "--exclude", "wuyun-redteam-ops/agents",
         ]),
     ]
     if not args.skip_preflight:

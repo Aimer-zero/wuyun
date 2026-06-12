@@ -1,0 +1,4 @@
+interface:
+  display_name: "Wuyun Red Team Ops"
+  short_description: "Authorized red-team path planning"
+  default_prompt: "Use $wuyun-redteam-ops with $wuyun to plan an authorized red-team or purple-team engagement, map attack paths to safe validation steps, and produce evidence/remediation tracking without malware, stealth, or credential theft."

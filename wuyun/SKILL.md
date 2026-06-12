@@ -1,6 +1,6 @@
 ---
 name: wuyun
-description: Tool-aware autonomous vulnerability research workflow for security reviews, CTF/lab/sandbox targets, local code audits, online Web/API testing, online cloud-security analysis, reverse engineering triage, cross-skill chain planning, and vulnerability reporting. Use when an agent must classify scope, select suitable tools, understand architecture and trust boundaries, map attack surface, generate falsifiable hypotheses, validate with evidence, reduce false positives, synthesize multiple helper outputs into safe next-skill recommendations, produce remediation-focused findings, and extract reusable lessons rather than run a simple scan.
+description: Tool-aware autonomous vulnerability research workflow for security reviews, red-team/purple-team planning, CTF/lab/sandbox targets, local code audits, online Web/API testing, online cloud-security analysis, reverse engineering triage, cross-skill chain planning, and vulnerability reporting. Use when an agent must classify scope, select suitable tools, understand architecture and trust boundaries, map attack surface, generate falsifiable hypotheses, validate with evidence, reduce false positives, synthesize multiple helper outputs into safe next-skill recommendations, produce remediation-focused findings, and extract reusable lessons rather than run a simple scan.
 ---
 
 # Wuyun
@@ -39,6 +39,7 @@ Select the lightest mode that can answer the request; do not force the full work
 | `online-cloud` | Cloud exposure, SSRF, metadata, object storage, IAM/STS, or cloud misconfiguration target | online fingerprinting, callback proof, metadata/STS triage, and redacted in-scope impact analysis | evidence, impact, confidence, remediation |
 | `ctf-lab` | CTF/lab/sandbox/deliberately vulnerable target declared by the user | proactive bounded enumeration and minimal exploitation for intended artifact | replayable solution, artifact/flag, tried/ruled-out list |
 | `chain-mode` | Multiple Wuyun helper outputs or findings need cross-skill prioritization | synthesize local artifacts, recommend next companion skill, and describe safe chain hypotheses | chain nodes, confidence by link, safe next validation, remediation chain breakers |
+| `redteam-ops` | Authorized red-team, purple-team, adversary-emulation, or attack-path planning | frame ROE, map attack paths, route to specialist skills, define safe validation and detection/remediation workstreams | operation plan, attack-path matrix, guardrails, evidence ledger |
 | `full-research` | Broad/complex assessment | run all stages and maintain state tables | full report, evidence ledger, lessons learned |
 
 If the task is underspecified, infer the practical target from the request and start with low-impact discovery. Ask a short clarification only when no concrete target can be identified.
@@ -69,6 +70,8 @@ Companion loading rule: prefer the installed skill by name, such as `$wuyun-auth
   Load `$wuyun-recon`; sibling fallback: `../wuyun-recon/SKILL.md`.
 - **Evasion-analysis signals** (`canonicalization`, parser mismatch, WAF/origin difference, origin exposure in owned lab):
   Load `$wuyun-evasion`; sibling fallback: `../wuyun-evasion/SKILL.md`.
+- **Red-team operations signals** (`red team`, `purple team`, adversary emulation, attack path, ROE, operation plan, engagement plan, detection workstream):
+  Load `$wuyun-redteam-ops`; sibling fallback: `../wuyun-redteam-ops/SKILL.md`. Use for planning, path modeling, safe validation, detection, remediation, and cross-skill handoffs; do not turn it into malware, persistence, credential theft, destructive actions, or stealth/WAF-bypass payload generation.
 - **Chain-mode signals** (`attack chain`, `chain mode`, cross-skill, multiple artifacts, combine findings, next skill recommendation):
   Stay in this skill, load `references/chain-mode.md`, and run `scripts/chain_planner.py <artifact...>` when local artifacts are available.
 - **Local code-audit signals** (repository, source tree, config, dependency, framework behavior):
@@ -94,6 +97,7 @@ Then choose tools by evidence value and risk:
 - **SQLi**: SQLMap MCP or `sqlmap` plus manual verification; prove parser influence and impact without unnecessary data dumping. When exact sensitive values are needed for remediation, reference a secure owner-controlled evidence channel instead of printing secrets in the report.
 - **Frontend/runtime JS**: dedicated JS reverse tooling if available; otherwise browser/Chrome automation, jshook-style runtime hooks, AST/manual deobfuscation, sourcemap recovery, and network inspection.
 - **Companion workflows**: route specialized tasks through **Skill Router** above, then use that child skill's bundled helpers and references.
+- **Red-team/purple-team planning**: use `$wuyun-redteam-ops` to build rules-of-engagement-aware plans, attack-path matrices, detection opportunities, and specialist handoffs before active validation.
 - **Binary/mobile/forensics**: IDA/Ghidra, `checksec`, debugger, Frida, pcap/file-carving tools as appropriate.
 
 When a preferred tool is missing, state the validation gap, use the closest safe fallback only if it preserves integrity, and avoid claiming absence of risk.

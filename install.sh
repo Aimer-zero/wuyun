@@ -7,6 +7,7 @@ DEFAULT_BRANCH="main"
 REPO="${WUYUN_REPO:-$DEFAULT_REPO}"
 BRANCH="${WUYUN_BRANCH:-$DEFAULT_BRANCH}"
 VERSION="${WUYUN_VERSION:-}"
+PACKAGE_VERSION=""
 TARGET="${WUYUN_TARGET:-both}"
 INSTALL_DIR="${WUYUN_INSTALL_DIR:-}"
 ARCHIVE_URL="${WUYUN_ARCHIVE_URL:-}"
@@ -27,6 +28,7 @@ SKILLS=(
   "wuyun-ai-audit"
   "wuyun-recon"
   "wuyun-evasion"
+  "wuyun-redteam-ops"
 )
 
 die() {
@@ -145,6 +147,7 @@ install_skill_dir() {
     printf '  "repo": "%s",\n' "$REPO"
     printf '  "branch": "%s",\n' "$BRANCH"
     printf '  "version": "%s",\n' "$VERSION"
+    printf '  "package_version": "%s",\n' "$PACKAGE_VERSION"
     printf '  "source": "%s",\n' "$(source_label)"
     printf '  "installed_at": "%s",\n' "$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
     printf '  "skills": [\n'
@@ -302,6 +305,10 @@ else
   tar -xzf "$ARCHIVE" -C "$EXTRACT_DIR"
   SRC_ROOT="$(find "$EXTRACT_DIR" -mindepth 1 -maxdepth 1 -type d | head -n 1)"
   [ -n "$SRC_ROOT" ] || die "failed to locate extracted archive root"
+fi
+
+if [ -f "$SRC_ROOT/VERSION" ]; then
+  PACKAGE_VERSION="$(head -n 1 "$SRC_ROOT/VERSION")"
 fi
 
 while IFS= read -r dir; do

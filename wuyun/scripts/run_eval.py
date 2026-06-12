@@ -46,12 +46,39 @@ def resolve_layout(raw: str | None) -> tuple[Path, Path, Path]:
     return root, root / "wuyun", root
 
 
-def run_cmd(cmd: list[str], cwd: Path) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(cmd, cwd=cwd, text=True, capture_output=True, timeout=30)
+def run_cmd(cmd: list[str], cwd: Path, timeout: float = 30) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(cmd, cwd=cwd, text=True, capture_output=True, timeout=timeout)
 
 
 def record(name: str, condition: bool, detail: str) -> EvalCase:
     return EvalCase(name=name, passed=condition, detail=detail)
+
+
+def iter_helper_scripts(skill: Path, skills_parent: Path) -> list[Path]:
+    """Return bundled Wuyun helper CLIs from a checkout or installed skill set."""
+    candidates = [skill, *sorted(skills_parent.glob("wuyun-*"))]
+    scripts: list[Path] = []
+    seen: set[Path] = set()
+    for candidate in candidates:
+        scripts_dir = candidate / "scripts"
+        if not scripts_dir.exists():
+            continue
+        for script in sorted(scripts_dir.glob("*.py")):
+            resolved = script.resolve()
+            if resolved in seen:
+                continue
+            seen.add(resolved)
+            scripts.append(script)
+    return scripts
+
+
+def display_path(path: Path, root: Path, skills_parent: Path) -> str:
+    for base in (root, skills_parent):
+        try:
+            return str(path.relative_to(base))
+        except ValueError:
+            continue
+    return path.name
 
 
 def ensure_fixture_dir(root: Path, tmp: Path) -> Path:
@@ -419,6 +446,92 @@ def eval_jwt_audit(root: Path, skills_parent: Path, tmp: Path) -> EvalCase:
     return record("jwt_audit", condition, "JWT structural risks detected without signature brute force")
 
 
+def eval_redteam_ops(root: Path, skills_parent: Path, tmp: Path) -> EvalCase:
+    plan_script = skills_parent / "wuyun-redteam-ops" / "scripts" / "redteam_plan.py"
+    matrix_script = skills_parent / "wuyun-redteam-ops" / "scripts" / "attack_path_matrix.py"
+    if not plan_script.exists() or not matrix_script.exists():
+        return record("redteam_ops", False, f"missing red-team helper: {plan_script} / {matrix_script}")
+
+    plan_proc = run_cmd(
+        [
+            sys.executable,
+            str(plan_script),
+            "--profile",
+            "web",
+            "--profile",
+            "cloud",
+            "--asset",
+            "api.example.invalid",
+            "--objective",
+            "assess tenant isolation",
+            "--json",
+        ],
+        root,
+    )
+    if plan_proc.returncode != 0:
+        return record("redteam_ops", False, plan_proc.stderr.strip() or f"plan exit {plan_proc.returncode}")
+    try:
+        plan = json.loads(plan_proc.stdout)
+    except json.JSONDecodeError as exc:
+        return record("redteam_ops", False, f"invalid plan JSON: {exc}")
+
+    artifact = tmp / "redteam-artifact.json"
+    artifact.write_text(
+        json.dumps(
+            {
+                "paths": ["/api/users/{userId}", "/api/admin/roles"],
+                "fields": ["tenantId", "role"],
+                "cloud": ["metadata", "sts", "bucket"],
+                "headers": ["Authorization: Bearer <redacted>"],
+            }
+        ),
+        encoding="utf-8",
+    )
+    matrix_proc = run_cmd([sys.executable, str(matrix_script), str(artifact), "--profile", "web", "--json"], root)
+    if matrix_proc.returncode != 0:
+        return record("redteam_ops", False, matrix_proc.stderr.strip() or f"matrix exit {matrix_proc.returncode}")
+    try:
+        matrix = json.loads(matrix_proc.stdout)
+    except json.JSONDecodeError as exc:
+        return record("redteam_ops", False, f"invalid matrix JSON: {exc}")
+
+    text = json.dumps({"plan": plan, "matrix": matrix}, ensure_ascii=False)
+    condition = all(
+        [
+            plan.get("status") == "plan-only",
+            len(plan.get("attack_paths", [])) >= 4,
+            "$wuyun-web-api-audit" in text,
+            "$wuyun-cloud-vuln" in text,
+            "no malware" in text.lower(),
+            any(entry.get("path_id") == "web-api-authz" for entry in matrix.get("entries", [])),
+        ]
+    )
+    return record("redteam_ops", condition, "red-team plan and attack-path matrix route safely to specialist skills")
+
+
+def eval_helper_help(root: Path, skill: Path, skills_parent: Path) -> EvalCase:
+    scripts = iter_helper_scripts(skill, skills_parent)
+    if not scripts:
+        return record("helper_help_smoke", False, "no helper scripts found")
+
+    failures: list[str] = []
+    for script in scripts:
+        label = display_path(script, root, skills_parent)
+        try:
+            proc = run_cmd([sys.executable, str(script), "--help"], root, timeout=5)
+        except subprocess.TimeoutExpired:
+            failures.append(f"{label}: timed out")
+            continue
+        combined = f"{proc.stdout}\n{proc.stderr}".lower()
+        if proc.returncode != 0 or "usage:" not in combined:
+            message = (proc.stderr.strip() or proc.stdout.strip() or f"exit {proc.returncode}").replace("\n", " ")
+            failures.append(f"{label}: {message[:120]}")
+
+    if failures:
+        return record("helper_help_smoke", False, "; ".join(failures[:5]))
+    return record("helper_help_smoke", True, f"{len(scripts)} helper CLIs expose fast --help output")
+
+
 def print_summary(cases: list[EvalCase], root: Path) -> int:
     passed = sum(1 for case in cases if case.passed)
     failed = len(cases) - passed
@@ -460,6 +573,8 @@ def main(argv: list[str]) -> int:
             eval_route_wordlist(root, skills_parent, tmp),
             eval_protocol_inventory(root, skills_parent, tmp),
             eval_jwt_audit(root, skills_parent, tmp),
+            eval_redteam_ops(root, skills_parent, tmp),
+            eval_helper_help(root, skill, skills_parent),
         ]
     return print_summary(cases, root)
 
