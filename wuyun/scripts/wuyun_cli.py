@@ -91,6 +91,67 @@ def print_report_template(kind: str) -> None:
     print("- False-positive reducer:")
 
 
+def read_json_file(path: Path) -> dict:
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
+def discover_skill_names(root: Path) -> list[str]:
+    skills = []
+    for candidate in [root / "wuyun", *sorted(root.glob("wuyun-*"))]:
+        if (candidate / "SKILL.md").exists():
+            skills.append(candidate.name)
+    return skills
+
+
+def load_version_info() -> dict:
+    install_meta_path = REPO_ROOT / ".wuyun-install.json"
+    install_meta = read_json_file(install_meta_path)
+    version_path = REPO_ROOT / "VERSION"
+    version = str(install_meta.get("package_version") or "").strip()
+    if not version and version_path.exists():
+        version = version_path.read_text(encoding="utf-8", errors="replace").splitlines()[0].strip()
+    source = install_meta.get("source") or ("local checkout" if version_path.exists() else "installed skill directory")
+    skills = install_meta.get("skills") if isinstance(install_meta.get("skills"), list) else discover_skill_names(REPO_ROOT)
+    return {
+        "name": "wuyun",
+        "version": version or "unknown",
+        "source": source,
+        "repo": install_meta.get("repo") or "Aimer-zero/wuyun",
+        "branch": install_meta.get("branch") or "main",
+        "requested_version": install_meta.get("version") or "",
+        "installed_at": install_meta.get("installed_at") or "",
+        "root": str(REPO_ROOT),
+        "skill_dir": str(SCRIPT_DIR.parent),
+        "install_metadata": str(install_meta_path) if install_meta_path.exists() else "",
+        "skills": skills,
+        "skill_count": len(skills),
+    }
+
+
+def print_version_info(as_json: bool = False) -> None:
+    info = load_version_info()
+    if as_json:
+        print(json.dumps(info, ensure_ascii=False, indent=2))
+        return
+    print("# Wuyun Version")
+    print()
+    print(f"- Version: `{info['version']}`")
+    print(f"- Source: `{info['source']}`")
+    print(f"- Repo: `{info['repo']}`")
+    print(f"- Branch: `{info['branch']}`")
+    if info["requested_version"]:
+        print(f"- Requested install version: `{info['requested_version']}`")
+    if info["installed_at"]:
+        print(f"- Installed at: `{info['installed_at']}`")
+    print(f"- Root: `{info['root']}`")
+    print(f"- Skills: `{info['skill_count']}`")
+    for skill in info["skills"]:
+        print(f"  - `{skill}`")
+
+
 def print_playbooks() -> None:
     playbooks = [
         ("code-audit", "Local repository source/config review"),
@@ -364,6 +425,10 @@ def build_parser() -> argparse.ArgumentParser:
     report = sub.add_parser("report", help="print a finding/triage/lesson report template")
     report.add_argument("--kind", choices=["finding", "triage", "lesson"], default="finding")
     report.set_defaults(func=lambda args: (print_report_template(args.kind) or 0))
+
+    version = sub.add_parser("version", help="show Wuyun package version, install source, and bundled skills")
+    version.add_argument("--json", action="store_true", help="emit JSON")
+    version.set_defaults(func=lambda args: (print_version_info(args.json) or 0))
 
     sub.add_parser("playbooks", help="list Wuyun scenario playbooks").set_defaults(
         func=lambda args: (print_playbooks() or 0)

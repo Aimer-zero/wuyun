@@ -26,10 +26,10 @@ curl -fsSL https://raw.githubusercontent.com/Aimer-zero/wuyun/main/install.sh | 
 curl -fsSL https://raw.githubusercontent.com/Aimer-zero/wuyun/main/install.sh | bash -s -- --target claude
 ```
 
-固定发布版本安装（当前发布：`v0.2.1`）：
+固定发布版本安装（当前发布：`v0.2.2`）：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Aimer-zero/wuyun/main/install.sh | bash -s -- --version v0.2.1
+curl -fsSL https://raw.githubusercontent.com/Aimer-zero/wuyun/main/install.sh | bash -s -- --version v0.2.2
 ```
 
 本地开发安装当前 checkout：
@@ -102,6 +102,7 @@ bash -n install.sh
 常用 CLI：
 
 ```bash
+python3 wuyun/scripts/wuyun_cli.py version --json
 python3 wuyun/scripts/wuyun_cli.py playbooks
 python3 wuyun/scripts/wuyun_cli.py eval .
 python3 wuyun/scripts/wuyun_cli.py audit /path/to/repo --code-only
@@ -172,10 +173,10 @@ Rerun the installer to update. Install only for Claude:
 curl -fsSL https://raw.githubusercontent.com/Aimer-zero/wuyun/main/install.sh | bash -s -- --target claude
 ```
 
-Install a fixed release (current release: `v0.2.1`):
+Install a fixed release (current release: `v0.2.2`):
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Aimer-zero/wuyun/main/install.sh | bash -s -- --version v0.2.1
+curl -fsSL https://raw.githubusercontent.com/Aimer-zero/wuyun/main/install.sh | bash -s -- --version v0.2.2
 ```
 
 Install from a local checkout:
@@ -248,6 +249,7 @@ bash -n install.sh
 Useful CLI commands:
 
 ```bash
+python3 wuyun/scripts/wuyun_cli.py version --json
 python3 wuyun/scripts/wuyun_cli.py playbooks
 python3 wuyun/scripts/wuyun_cli.py eval .
 python3 wuyun/scripts/wuyun_cli.py audit /path/to/repo --code-only

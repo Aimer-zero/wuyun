@@ -332,6 +332,28 @@ def eval_cli_playbooks(root: Path, skill: Path) -> EvalCase:
     return record("wuyun_cli_playbooks", condition, "Cloudflare and chain playbooks are discoverable")
 
 
+def eval_cli_version(root: Path, skill: Path) -> EvalCase:
+    script = skill / "scripts" / "wuyun_cli.py"
+    proc = run_cmd([sys.executable, str(script), "version", "--json"], root)
+    if proc.returncode != 0:
+        return record("wuyun_cli_version", False, proc.stderr.strip() or f"exit {proc.returncode}")
+    try:
+        data = json.loads(proc.stdout)
+    except json.JSONDecodeError as exc:
+        return record("wuyun_cli_version", False, f"invalid JSON: {exc}")
+    skills = set(data.get("skills", []))
+    condition = all(
+        [
+            data.get("name") == "wuyun",
+            data.get("version") not in {"", "unknown", None},
+            data.get("skill_count", 0) >= 13,
+            "wuyun-redteam-ops" in skills,
+            "root" in data,
+        ]
+    )
+    return record("wuyun_cli_version", condition, "CLI reports package version, source metadata, and bundled skills")
+
+
 def eval_chain_planner(root: Path, skill: Path, tmp: Path) -> EvalCase:
     artifact = ensure_chain_artifact(root, tmp)
     script = skill / "scripts" / "chain_planner.py"
@@ -582,6 +604,7 @@ def main(argv: list[str]) -> int:
             eval_cloudflare(root, skill, tmp),
             eval_cloud_tokens(root, skills_parent, tmp),
             eval_cli_playbooks(root, skill),
+            eval_cli_version(root, skill),
             eval_chain_planner(root, skill, tmp),
             eval_openapi_analyzer(root, skills_parent, tmp),
             eval_js_surface(root, skills_parent, tmp),
